@@ -1,9 +1,13 @@
 # Veracode EASM Report Generator
 
-Generates a complete three-view HTML report (CISO / Security Engineer / GRC)
-from a Veracode EASM xlsx export. Drop files in, run one command, get a report.
+A local CLI tool that turns a Veracode EASM xlsx export into a polished HTML report.
+Drop files in, run one command, get a report. No API keys, no external services, no manual steps.
 
-No Claude. No API keys. No manual steps after.
+Two output modes:
+- **Full report** — three-view HTML report tailored for CISO, Security Engineer, and GRC audiences
+- **Snapshot report** — single-page teaser with top findings and supply chain exposure, designed to share with prospects before delivering the full report
+
+Once the report is generated, it's worth loading the HTML into an LLM (e.g. Claude, ChatGPT) to pull out additional insights — pattern analysis, remediation prioritisation, or executive narrative — that go beyond what the static report surfaces on its own.
 
 ---
 

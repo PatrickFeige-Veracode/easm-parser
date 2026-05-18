@@ -1,0 +1,186 @@
+<!-- ═══════════════════════════════════════════
+     GRC VIEW
+═══════════════════════════════════════════ -->
+<div class="view" id="view-grc">
+
+  <!-- Hero -->
+  <div class="hero sec-dark dots-d" id="grc-hero">
+    <div class="hero-orb1"></div>
+    <div class="hero-tag">Governance, Risk &amp; Compliance · {{ seed_domain_0 }}</div>
+    <h1>Third-party risk posture &amp;<br><span style="color:var(--amber)">data classification status.</span></h1>
+    <p class="hero-sub">Supplier data classification, governance gaps, audit-ready remediation actions, and supplier register gap analysis mapped from the Veracode EASM scan.</p>
+    <div class="hero-stats">
+      <div><div class="hs-n red">{{ investigation_count }}/{{ total_apps }}</div><div class="hs-l">Recommended programme: investigation</div></div>
+      <div><div class="hs-n {% if pii_suppliers %}amber{% else %}green{% endif %}">{{ pii_suppliers | length }}</div><div class="hs-l">PII supplier connection{% if pii_suppliers | length != 1 %}s{% endif %}</div></div>
+      <div><div class="hs-n {% if pci_suppliers %}amber{% else %}green{% endif %}">{{ pci_suppliers | length }}</div><div class="hs-l">PCI supplier connection{% if pci_suppliers | length != 1 %}s{% endif %}</div></div>
+      <div><div class="hs-n {% if ai_suppliers %}amber{% else %}green{% endif %}">{{ ai_suppliers | length }}</div><div class="hs-l">AI supplier connection{% if ai_suppliers | length != 1 %}s{% endif %}</div></div>
+      <div><div class="hs-n red">{{ internal_api_findings | length }}</div><div class="hs-l">internalApi-tagged assets</div></div>
+    </div>
+  </div>
+
+  <!-- Data classification -->
+  <div class="sec sec-white" id="grc-data">
+    <div class="eyebrow">Data classification · Supplier scope</div>
+    <h2>PII, PCI, and AI supplier classifications.</h2>
+    <p style="color:var(--g600);max-width:640px;margin-bottom:24px">Veracode EASM classifies every discovered supplier connection against three regulated data contexts — identifying which third parties have a technical path to sensitive data.</p>
+    <div class="card-row">
+      <div class="card" style="border-left:4px solid {% if pii_suppliers %}var(--red){% else %}var(--green){% endif %}">
+        <div style="font-family:var(--mono);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:{% if pii_suppliers %}var(--red){% else %}var(--green){% endif %};margin-bottom:10px">PII Classification</div>
+        <div style="font-size:24px;font-weight:700;color:{% if pii_suppliers %}var(--red){% else %}var(--green){% endif %};margin-bottom:10px">{{ pii_suppliers | length }} supplier{% if pii_suppliers | length != 1 %}s{% endif %}</div>
+        {% if pii_suppliers %}
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:6px;margin-top:4px">
+          {% for s in pii_suppliers %}
+          <li style="font-size:12px;color:var(--navy);line-height:1.5;padding:6px 10px;background:rgba(227,24,55,.04);border-radius:4px;border-left:2px solid rgba(227,24,55,.3)">
+            <strong style="color:var(--navy)">{{ s.name }}</strong>
+            {% if s.vectors %}
+            <span style="color:var(--g600);margin-left:4px">— {% for k, v in s.vectors.items() %}{{ v }} {{ k }}{% if not loop.last %}, {% endif %}{% endfor %}</span>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+        <p style="font-size:11px;color:var(--g600);margin-top:10px;line-height:1.5">Connected via SPF/MX records — classified by Veracode EASM as having a technical path to personal data. Verify current data processing agreement coverage.</p>
+        {% else %}
+        <p style="font-size:13px;color:var(--g600);line-height:1.6">No PII-classified supplier connections detected from passive discovery. This may reflect strong data segregation or a gap in EASM visibility — internal validation recommended.</p>
+        {% endif %}
+      </div>
+      <div class="card" style="border-left:4px solid {% if pci_suppliers %}var(--amber){% else %}var(--green){% endif %}">
+        <div style="font-family:var(--mono);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:{% if pci_suppliers %}var(--amber){% else %}var(--green){% endif %};margin-bottom:10px">PCI Classification</div>
+        <div style="font-size:24px;font-weight:700;color:{% if pci_suppliers %}var(--amber){% else %}var(--green){% endif %};margin-bottom:10px">{{ pci_suppliers | length }} supplier{% if pci_suppliers | length != 1 %}s{% endif %}</div>
+        {% if pci_suppliers %}
+        <p style="font-size:13px;color:var(--g600);line-height:1.6">{% for s in pci_suppliers %}<strong>{{ s.name }}</strong> ({{ "%.1f"|format(s.proximity) }}%){% if not loop.last %}, {% endif %}{% endfor %} — classified by Veracode EASM as connected to payment card data flows.</p>
+        {% else %}
+        <p style="font-size:13px;color:var(--g600);line-height:1.6">No PCI-classified supplier connections detected. This may reflect strong payment card data segmentation, or a gap in EASM visibility — internal validation recommended.</p>
+        {% endif %}
+      </div>
+      <div class="card" style="border-left:4px solid {% if ai_suppliers %}var(--blue-lt){% else %}var(--green){% endif %}">
+        <div style="font-family:var(--mono);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:{% if ai_suppliers %}var(--blue-lt){% else %}var(--green){% endif %};margin-bottom:10px">AI Classification</div>
+        <div style="font-size:24px;font-weight:700;color:{% if ai_suppliers %}var(--blue-lt){% else %}var(--green){% endif %};margin-bottom:10px">{{ ai_suppliers | length }} supplier{% if ai_suppliers | length != 1 %}s{% endif %}</div>
+        {% if ai_suppliers %}
+        <p style="font-size:13px;color:var(--g600);line-height:1.6">{% for s in ai_suppliers %}<strong>{{ s.name }}</strong> ({{ "%.1f"|format(s.proximity) }}%){% if not loop.last %}, {% endif %}{% endfor %} — classified by Veracode EASM as an AI service connection.</p>
+        {% else %}
+        <p style="font-size:13px;color:var(--g600);line-height:1.6">No AI service supplier connections detected. No external AI data processing paths identified in the current estate from passive discovery.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- BI layer -->
+  <div class="sec sec-light dots-l" id="grc-bi">
+    <div class="eyebrow">Supply chain intelligence · Business intelligence layer</div>
+    <h2>Beyond cyber posture — 5 dimensions per supplier.</h2>
+    <p style="color:var(--g600);max-width:640px;margin-bottom:24px">A supplier with a strong cyber rating but deteriorating financials is still a third-party risk. Veracode EASM overlays five non-cyber intelligence categories on every supplier connection — providing a complete picture of third-party risk beyond technical posture alone.</p>
+    <div class="bi-grid">
+      <div class="bi-cell"><div class="bi-cat">Category 01</div><div class="bi-title">Financial</div><div class="bi-desc">Credit ratings, financial stress signals, going-concern indicators</div></div>
+      <div class="bi-cell"><div class="bi-cat">Category 02</div><div class="bi-title">Compliance</div><div class="bi-desc">SOC 2 / ISO 27001 status, regulatory certifications, attestations</div></div>
+      <div class="bi-cell"><div class="bi-cat">Category 03</div><div class="bi-title">Geopolitical</div><div class="bi-desc">Country risk, sanctions exposure, jurisdictional concentration</div></div>
+      <div class="bi-cell"><div class="bi-cat">Category 04</div><div class="bi-title">Corporate</div><div class="bi-desc">Ownership, subsidiaries, M&amp;A history, controlling shareholders</div></div>
+      <div class="bi-cell"><div class="bi-cat">Category 05</div><div class="bi-title">Sector</div><div class="bi-desc">Industry intelligence, peer benchmarks, sector-specific threat context</div></div>
+    </div>
+    <div class="strip strip-amber" style="margin-top:20px">
+      <p><strong>Supplier register gap analysis:</strong> Veracode EASM discovers technically-connected suppliers from DNS, certificate, software, and header signals — surfacing vendors that may not appear on internal procurement registers. The {{ suppliers | length }} suppliers in this report should be assessed against existing supplier inventories to identify any gaps.</p>
+    </div>
+  </div>
+
+  <!-- Governance gaps -->
+  <div class="sec sec-white" id="grc-gaps">
+    <div class="eyebrow">Governance · Open issues</div>
+    <h2>Governance gaps requiring remediation ownership.</h2>
+
+    <div class="fc crit">
+      <div class="fc-hd"><div class="fc-title">All {{ investigation_count }} applications — Recommended Security Programme: investigation</div><span class="b b-red">Open</span></div>
+      <div class="fc-body">The <code>RecommendedSecurityProgram</code> field in the export is set to <code>investigation</code> for all {{ investigation_count }} discovered applications. No application has a cleared security programme assigned. Continuous oversight of internet-facing assets is a prerequisite for maintaining governance over the external attack surface — this scan shows no programme has been run against any asset in the estate.</div>
+      <div class="fc-meta"><span class="b b-red">All {{ investigation_count }} assets</span><span class="b b-amber">No cleared programme</span></div>
+    </div>
+
+    {% if staging_findings %}
+    <div class="fc crit">
+      <div class="fc-hd"><div class="fc-title">{{ staging_findings | length }} staging environment{% if staging_findings | length != 1 %}s{% endif %} publicly resolvable</div><span class="b b-red">Open</span></div>
+      <div class="fc-body">
+        {% for f in staging_findings[:3] %}<code>{{ f.asset }}:{{ f.port }}</code> (status: <code>{{ f.status }}</code>, grade {{ f.grade }}){% if not loop.last %}, {% endif %}{% endfor %}{% if staging_findings | length > 3 %} and {{ staging_findings | length - 3 }} more{% endif %} — staging/development assets externally reachable with no evidence of access restriction in the scan data. Risk lives beyond code: unmanaged environments outside standard security programmes widen the attack surface.
+      </div>
+      <div class="fc-meta">{% for f in staging_findings[:3] %}<span class="b b-red">{{ f.asset[:30] }}{% if f.asset | length > 30 %}…{% endif %}</span>{% endfor %}</div>
+    </div>
+    {% endif %}
+
+    {% for f in hygiene_findings %}
+    <div class="fc {{ f.fc_class }}">
+      <div class="fc-hd"><div class="fc-title">{{ f.title }}</div><span class="b b-amber">Open</span></div>
+      <div class="fc-body">{{ f.body }}</div>
+      <div class="fc-meta">
+        {% for tag in f.tags[:3] %}<span class="b b-grey">{{ tag }}</span>{% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+
+    {% if internal_api_findings %}
+    <div class="fc d-lvl">
+      <div class="fc-hd"><div class="fc-title">internalApi-tagged assets externally resolvable — {{ internal_api_findings | length }} endpoint{% if internal_api_findings | length != 1 %}s{% endif %}</div><span class="b b-amber">Open</span></div>
+      <div class="fc-body">
+        {% for f in internal_api_findings %}<code>{{ f.asset }}:{{ f.port }}</code> ({{ f.status }}, grade {{ f.grade }}){% if not loop.last %}, {% endif %}{% endfor %} — all tagged <code>internalApi</code> and externally resolvable. If external exposure is intentional, it requires documented risk acceptance. If unintentional, access controls need to be applied.
+      </div>
+      <div class="fc-meta"><span class="b b-amber">internalApi ×{{ internal_api_findings | length }}</span></div>
+    </div>
+    {% endif %}
+
+    {% if pii_suppliers %}
+    <div class="fc med">
+      <div class="fc-hd"><div class="fc-title">PII-classified supplier{% if pii_suppliers | length != 1 %}s{% endif %} — data processing agreement review required</div><span class="b b-blue">Open</span></div>
+      <div class="fc-body">The following suppliers are classified by Veracode EASM as having a technical path to personal data. Verify that a current data processing agreement is in place for each. {% for s in pii_suppliers %}<strong>{{ s.name }}</strong> ({{ "%.1f"|format(s.proximity) }}%{% if s.vectors %}, {% for k, v in s.vectors.items() %}{{ v }} {{ k }}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}){% if not loop.last %}; {% endif %}{% endfor %}.</div>
+      <div class="fc-meta">{% for s in pii_suppliers %}<span class="b b-blue">{{ s.name }}</span>{% endfor %}<span class="b b-grey">PII classification</span></div>
+    </div>
+    {% endif %}
+
+  </div>
+
+  <!-- Supplier register -->
+  <div class="sec sec-light" id="grc-register">
+    <div class="eyebrow">Third-party risk · Supplier register gap analysis</div>
+    <h2>Suppliers discovered — register assessment.</h2>
+    <p style="color:var(--g600);max-width:640px;margin-bottom:20px">Standard supplier programmes manage known vendors. Veracode EASM discovers technically-connected suppliers from DNS, certificate, software, and header signals — surfacing vendors that may not appear on internal procurement registers.</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Supplier</th><th>Proximity</th><th>Connection type</th><th>Data classification</th><th>Action</th></tr></thead>
+        <tbody>
+          {% for s in suppliers %}
+          <tr>
+            <td><strong>{{ s.name }}</strong></td>
+            <td class="mn">{{ "%.2f"|format(s.proximity) }}%</td>
+            <td>{% for k, v in s.vectors.items() %}<span class="b b-grey">{{ k }}:{{ v }}</span> {% endfor %}</td>
+            <td>
+              {% if s.is_pii %}<span class="b b-red">PII</span> {% endif %}
+              {% if s.is_pci %}<span class="b b-amber">PCI</span> {% endif %}
+              {% if s.is_ai %}<span class="b b-blue">AI</span> {% endif %}
+              {% if not s.is_pii and not s.is_pci and not s.is_ai %}<span class="b b-grey">—</span>{% endif %}
+            </td>
+            <td style="font-size:12px;color:var(--g600)">
+              {% if s.proximity > 40 %}Verify incident response coverage{% elif s.is_pii %}Review data processing agreement{% elif s.proximity > 20 %}Assess relationship and scope{% else %}Confirm vendor status{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Action plan -->
+  <div class="sec sec-dark dots-d" id="grc-plan">
+    <div class="eyebrow-w">Remediation · Governance action plan</div>
+    <h2 style="color:#fff">Actions derived from scan data.</h2>
+    <p style="color:rgba(255,255,255,.5);margin-bottom:20px;max-width:640px">Each action below maps directly to a finding in the dataset. No priority ordering is applied here — sequencing should be determined by your own risk assessment.</p>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:20px">
+      {% set sev_colors = {'crit': 'var(--red)', 'd-lvl': 'var(--coral)', 'med': 'var(--amber)', '': 'var(--navy-hi)'} %}
+      {% set sev_borders = {'crit': '', 'd-lvl': '', 'med': '', '': 'border:1px solid rgba(255,255,255,.15);'} %}
+      {% for f in findings[:10] %}
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--r);padding:16px 20px;display:flex;gap:16px;align-items:flex-start">
+        <div style="width:26px;height:26px;border-radius:7px;background:{{ sev_colors.get(f.fc_class, 'var(--navy-hi)') }};color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;{{ sev_borders.get(f.fc_class, '') }}">{{ loop.index }}</div>
+        <div style="flex:1">
+          <div style="font-size:13.5px;font-weight:600;color:#fff;margin-bottom:4px">{{ f.title }}</div>
+          <div style="font-size:12.5px;color:rgba(255,255,255,.55);line-height:1.6">{{ f.body }}</div>
+        </div>
+        <span class="b b-grey" style="flex-shrink:0">{{ f.category }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div><!-- /view-grc -->

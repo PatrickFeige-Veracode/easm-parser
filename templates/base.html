@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Veracode EASM — {{ seed_domain_0 }} · External Attack Surface Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:     #060C1A;
+  --navy-mid: #0B1228;
+  --navy-hi:  #131D38;
+  --red:      #E31837;
+  --red-dk:   #B81229;
+  --white:    #FFFFFF;
+  --g100:     #EEF2F8;
+  --g200:     #D4DCF0;
+  --g400:     #7B8DB5;
+  --g600:     #3D4F75;
+  --amber:    #F59E0B;
+  --green:    #00C389;
+  --blue-lt:  #2563EB;
+  --coral:    #F97316;
+  --sans:     'Inter', sans-serif;
+  --mono:     'JetBrains Mono', monospace;
+  --r:        8px;
+  --sidebar:  260px;
+}
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+body { font-family:var(--sans); background:var(--g100); color:var(--navy); -webkit-font-smoothing:antialiased; }
+a { text-decoration:none; color:inherit; }
+code { font-family:var(--mono); font-size:.85em; }
+
+/* ── TOPBAR ── */
+.topbar {
+  position:fixed; top:0; left:0; right:0; z-index:200;
+  height:54px; background:var(--navy);
+  border-bottom:1px solid rgba(255,255,255,.06);
+  display:flex; align-items:center; padding:0 24px; gap:14px;
+}
+.topbar::after {
+  content:''; position:absolute; bottom:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg, var(--red) 0%, rgba(227,24,55,0) 60%);
+}
+.tb-logo { display:flex; align-items:center; gap:9px; }
+.tb-icon { width:28px; height:28px; flex-shrink:0; }
+.tb-word { color:#fff; font-size:16px; font-weight:800; letter-spacing:-.3px; text-transform:lowercase; }
+.tb-div  { width:1px; height:20px; background:rgba(255,255,255,.1); }
+.tb-sub  { color:var(--g400); font-size:10.5px; letter-spacing:.6px; text-transform:uppercase; font-weight:500; }
+.tb-right { margin-left:auto; display:flex; align-items:center; gap:10px; }
+.tb-scan { color:var(--g400); font-family:var(--mono); font-size:10.5px; }
+.tb-pill { font-size:9.5px; font-weight:700; padding:3px 10px; border-radius:4px; text-transform:uppercase; letter-spacing:.5px; }
+.tb-pill.passive { background:rgba(227,24,55,.15); border:1px solid rgba(227,24,55,.3); color:#FF6B81; }
+
+/* ── ROLE SWITCHER ── */
+.role-tabs { display:flex; gap:2px; background:rgba(255,255,255,.05); border-radius:6px; padding:3px; margin:0 12px; }
+.role-tab {
+  font-size:11px; font-weight:700; padding:5px 14px; border-radius:4px;
+  color:var(--g400); cursor:pointer; transition:all .15s; border:none; background:transparent;
+  letter-spacing:.3px; text-transform:uppercase;
+}
+.role-tab.active { background:var(--red); color:#fff; }
+.role-tab:hover:not(.active) { color:#fff; background:rgba(255,255,255,.07); }
+
+/* ── SIDEBAR ── */
+.sidebar {
+  position:fixed; top:54px; bottom:0; left:0; width:var(--sidebar);
+  background:var(--navy); border-right:1px solid rgba(255,255,255,.04);
+  overflow-y:auto; padding:20px 0; z-index:100;
+}
+.sb-label { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:var(--g600); padding:16px 16px 6px; }
+.sb-item {
+  display:flex; align-items:center; gap:9px; padding:8px 14px;
+  border-radius:5px; margin:1px 8px; cursor:pointer; color:var(--g400);
+  font-size:12.5px; font-weight:500; transition:all .12s; border:1px solid transparent;
+}
+.sb-item:hover { background:rgba(255,255,255,.04); color:#fff; }
+.sb-item.active { background:rgba(227,24,55,.1); border-color:rgba(227,24,55,.2); color:#fff; font-weight:600; }
+.sb-item.active svg { color:var(--red); }
+.sb-ic { width:14px; height:14px; flex-shrink:0; }
+.sb-ct { margin-left:auto; font-size:9.5px; font-weight:700; padding:1px 7px; border-radius:3px; background:rgba(227,24,55,.18); color:#FF6B81; }
+.sb-ct.a { background:rgba(245,158,11,.18); color:#FCD34D; }
+.sb-sep { height:1px; background:rgba(255,255,255,.04); margin:12px 14px; }
+.sb-meta { padding:14px 16px; }
+.sb-mlab { color:var(--g600); font-size:9px; text-transform:uppercase; letter-spacing:1px; margin-bottom:4px; font-weight:600; }
+.sb-mval { color:var(--g400); font-size:11px; font-family:var(--mono); line-height:2.1; }
+.sb-mval span { color:#fff; }
+
+/* ── MAIN ── */
+.main { margin-left:var(--sidebar); margin-top:54px; min-height:calc(100vh - 54px); padding:0; }
+
+/* ── SECTIONS ── */
+.sec { padding:52px 48px; }
+.sec-dark  { background:var(--navy); }
+.sec-mid   { background:var(--navy-mid); }
+.sec-white { background:#fff; }
+.sec-light { background:var(--g100); }
+.sec-cream { background:#FEFAF3; }
+.dots-d { background-image:radial-gradient(circle,rgba(255,255,255,.04) 1px,transparent 1px); background-size:28px 28px; }
+.dots-l { background-image:radial-gradient(circle,rgba(6,12,26,.05) 1px,transparent 1px); background-size:28px 28px; }
+
+.eyebrow { font-family:var(--mono); font-size:.6rem; font-weight:700; text-transform:uppercase; letter-spacing:.2em; color:var(--red); margin-bottom:12px; }
+.eyebrow-w { font-family:var(--mono); font-size:.6rem; font-weight:700; text-transform:uppercase; letter-spacing:.2em; color:var(--green); margin-bottom:12px; }
+.eyebrow-d { font-family:var(--mono); font-size:.6rem; font-weight:700; text-transform:uppercase; letter-spacing:.2em; color:var(--navy); margin-bottom:12px; }
+
+h1 { font-size:clamp(30px,4.2vw,52px); font-weight:900; letter-spacing:-.04em; line-height:1.02; }
+h2 { font-size:clamp(21px,2.6vw,32px); font-weight:800; letter-spacing:-.03em; line-height:1.08; margin-bottom:18px; }
+h3 { font-size:16px; font-weight:700; letter-spacing:-.02em; margin-bottom:10px; }
+p  { font-size:14px; line-height:1.7; }
+
+/* ── HERO ── */
+.hero { padding:60px 48px 48px; position:relative; overflow:hidden; }
+.hero-orb1 { position:absolute; top:-100px; right:-80px; width:500px; height:500px; border-radius:50%; background:radial-gradient(circle, rgba(0,195,137,.04) 0%, transparent 70%); pointer-events:none; }
+.hero-orb2 { position:absolute; bottom:-80px; left:-60px; width:300px; height:300px; border-radius:50%; background:rgba(227,24,55,.03); pointer-events:none; }
+.hero-tag { display:inline-flex; align-items:center; gap:6px; background:rgba(227,24,55,.1); border:1px solid rgba(227,24,55,.22); color:#FF6B81; font-size:10px; font-weight:700; letter-spacing:.6px; text-transform:uppercase; padding:4px 12px; border-radius:4px; margin-bottom:20px; }
+.hero h1 { color:#fff; margin-bottom:12px; }
+.hero-sub { font-size:15px; color:rgba(255,255,255,.5); max-width:580px; line-height:1.65; margin-bottom:40px; font-weight:400; }
+.hero-stats { display:flex; gap:44px; padding-top:32px; border-top:1px solid rgba(255,255,255,.07); flex-wrap:wrap; }
+.hs-n { font-size:40px; font-weight:900; letter-spacing:-.05em; color:#fff; line-height:1; margin-bottom:6px; }
+.hs-n.red { color:var(--red); }
+.hs-n.amber { color:var(--amber); }
+.hs-l { font-family:var(--mono); font-size:.56rem; text-transform:uppercase; letter-spacing:.16em; color:rgba(255,255,255,.3); }
+
+/* ── STAT GRID ── */
+.stat-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(155px,1fr)); gap:10px; margin-bottom:28px; }
+.stat-card { background:#fff; border:1px solid var(--g200); border-radius:var(--r); padding:18px 16px; position:relative; overflow:hidden; transition:transform .12s,box-shadow .12s; }
+.stat-card:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(6,12,26,.09); }
+.stat-card::before { content:''; position:absolute; top:0;left:0;right:0;height:2px; background:var(--red); opacity:0; transition:opacity .12s; }
+.stat-card:hover::before,.stat-card.hi::before { opacity:1; }
+.stat-card.hi { border-color:rgba(227,24,55,.2); background:#FFF3F5; }
+.sc-val { font-size:32px; font-weight:900; letter-spacing:-.05em; line-height:1; margin-bottom:5px; color:var(--navy); }
+.sc-val.red { color:var(--red); }
+.sc-val.amber { color:var(--amber); }
+.sc-val.green { color:var(--green); }
+.sc-lab { font-size:11px; color:var(--g600); font-weight:600; line-height:1.4; text-transform:uppercase; letter-spacing:.02em; }
+
+/* ── TABLE ── */
+.tbl-wrap { background:#fff; border:1px solid var(--g200); border-radius:var(--r); overflow:hidden; }
+table { width:100%; border-collapse:collapse; font-size:12.5px; }
+thead { background:var(--navy); }
+thead th { color:var(--g400); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; padding:10px 14px; text-align:left; }
+tbody tr { border-bottom:1px solid var(--g100); transition:background .1s; }
+tbody tr:last-child { border-bottom:none; }
+tbody tr:hover { background:#F5F8FE; }
+tbody td { padding:10px 14px; vertical-align:top; line-height:1.5; color:var(--navy); }
+.mn { font-family:var(--mono); font-size:11px; color:#1E3A8A; }
+
+/* ── BADGES ── */
+.b { display:inline-block; font-size:9.5px; font-weight:700; padding:2px 8px; border-radius:3px; text-transform:uppercase; letter-spacing:.4px; }
+.b-red   { background:rgba(227,24,55,.09);   color:#B81229; }
+.b-amber { background:rgba(245,158,11,.11);  color:#92680A; }
+.b-green { background:rgba(0,195,137,.1);   color:#006B4A; }
+.b-blue  { background:rgba(37,99,235,.09);   color:#1D4ED8; }
+.b-grey  { background:rgba(123,141,181,.12); color:#3D4F75; }
+.b-navy  { background:rgba(6,12,26,.07);    color:var(--navy); }
+.risk-A { display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700;background:rgba(245,158,11,.12);color:#92680A; }
+.risk-B { display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700;background:rgba(37,99,235,.1);color:#1D4ED8; }
+.risk-C { display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700;background:rgba(249,115,22,.15);color:#7C2D12; }
+.risk-D { display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700;background:rgba(227,24,55,.1);color:#B81229; }
+.risk-F { display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700;background:rgba(227,24,55,.2);color:#7F0012; }
+
+/* ── PRIORITY ── */
+.pq-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:24px; }
+.pq { padding:18px 16px; border-radius:var(--r); }
+.pq-name { font-family:var(--mono); font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.15em; margin-bottom:8px; }
+.pq-body { font-size:12px; line-height:1.6; font-weight:500; }
+.pq-fn { background:#E31837; color:#fff; }
+.pq-fs { background:#F97316; color:#fff; }
+.pq-mo { background:#F59E0B; color:#3A2000; }
+.pq-tr { background:#131D38; color:rgba(255,255,255,.7); }
+
+/* ── PROGRESS ── */
+.pr-row { display:flex; align-items:center; gap:12px; margin-bottom:10px; font-size:12.5px; }
+.pr-lab { width:200px; flex-shrink:0; font-size:12px; font-weight:600; color:var(--navy); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.pr-bar { flex:1; background:var(--g200); border-radius:3px; height:7px; overflow:hidden; }
+.pr-fill { height:100%; border-radius:3px; background:var(--red); }
+.pr-fill.b { background:var(--blue-lt); }
+.pr-fill.a { background:var(--amber); }
+.pr-fill.g { background:var(--green); }
+.pr-fill.grey { background:var(--g400); }
+.pr-val { width:50px; text-align:right; color:var(--g600); font-family:var(--mono); font-size:11px; font-weight:600; }
+
+/* ── CARDS ── */
+.card-row { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:12px; }
+.card-row-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.card { background:#fff; border:1px solid var(--g200); border-radius:var(--r); padding:22px 20px; }
+.card-dark { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07); border-radius:var(--r); padding:22px 20px; }
+.card-cream { background:#FEFAF3; border:1px solid rgba(245,158,11,.15); border-radius:var(--r); padding:22px 20px; }
+.card h3 { color:var(--navy); }
+.card-dark h3 { color:#fff; }
+
+/* ── ALERT ── */
+.alert { border-radius:var(--r); padding:14px 16px; margin-bottom:18px; display:flex; gap:12px; font-size:13px; line-height:1.65; }
+.alert-red  { background:#FFF0F3; border:1px solid rgba(227,24,55,.18); }
+.alert-amber{ background:#FFFBEB; border:1px solid rgba(245,158,11,.22); }
+.alert-blue { background:#EFF6FF; border:1px solid rgba(37,99,235,.18); }
+.alert-green{ background:#ECFDF5; border:1px solid rgba(0,195,137,.2); }
+.al-icon { font-size:16px; flex-shrink:0; margin-top:2px; }
+.al-body strong { display:block; margin-bottom:3px; font-size:12.5px; font-weight:700; }
+
+/* ── STRIP ── */
+.strip { border-radius:var(--r); padding:20px 24px; margin:20px 0; }
+.strip-red   { background:rgba(227,24,55,.05); border-left:3px solid var(--red); }
+.strip-amber { background:rgba(245,158,11,.06); border-left:3px solid var(--amber); }
+.strip-blue  { background:rgba(37,99,235,.05); border-left:3px solid var(--blue-lt); }
+.strip-dark  { background:var(--navy-hi); border-left:3px solid var(--green); }
+.strip p { font-size:14px; line-height:1.7; }
+.strip-dark p { color:rgba(255,255,255,.75); }
+
+/* ── PILLAR ── */
+.pillars { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+.pillar { background:#fff; border:1px solid var(--g200); border-radius:var(--r); padding:24px 20px; position:relative; overflow:hidden; }
+.pillar::before { content:''; position:absolute; top:0;left:0;right:0;height:2px; background:var(--red); }
+.pillar-d { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07); }
+.pillar-d::before { background:var(--green); }
+.p-num { font-family:var(--mono); font-size:.58rem; font-weight:700; text-transform:uppercase; letter-spacing:.18em; color:var(--red); margin-bottom:12px; }
+.p-num-w { font-family:var(--mono); font-size:.58rem; font-weight:700; text-transform:uppercase; letter-spacing:.18em; color:var(--green); margin-bottom:12px; }
+.p-title { font-size:15px; font-weight:800; color:var(--navy); margin-bottom:12px; line-height:1.3; }
+.p-title-w { font-size:15px; font-weight:800; color:#fff; margin-bottom:12px; line-height:1.3; }
+.pillar ul,.pillar-d ul { list-style:none; display:flex; flex-direction:column; gap:8px; }
+.pillar li { font-size:12px; color:var(--g600); line-height:1.6; padding-left:14px; position:relative; }
+.pillar li::before { content:'→'; position:absolute; left:0; color:var(--red); font-weight:700; }
+.pillar-d li { color:rgba(255,255,255,.55); }
+.pillar-d li::before { color:var(--green); }
+
+/* ── FINDING CARD ── */
+.fc { background:#fff; border:1px solid var(--g200); border-radius:var(--r); padding:18px 20px; margin-bottom:10px; border-left:3px solid var(--g200); transition:box-shadow .12s; }
+.fc:hover { box-shadow:0 4px 20px rgba(6,12,26,.08); }
+.fc.crit  { border-left-color:var(--red); }
+.fc.d-lvl { border-left-color:var(--amber); }
+.fc.med   { border-left-color:var(--blue-lt); }
+.fc-hd { display:flex; align-items:flex-start; gap:10px; margin-bottom:8px; }
+.fc-title { font-size:13.5px; font-weight:700; flex:1; }
+.fc-body { font-size:12.5px; color:var(--g600); line-height:1.65; }
+.fc-meta { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+.code-block { background:#F4F7FD; border:1px solid var(--g200); border-radius:5px; padding:8px 12px; font-family:var(--mono); font-size:11px; color:#1E3A8A; margin:10px 0; display:block; }
+
+/* ── BI CATEGORIES ── */
+.bi-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; }
+.bi-cell { background:#fff; border-radius:var(--r); padding:18px 14px; text-align:center; border-top:2px solid var(--navy); }
+.bi-cat { font-family:var(--mono); font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.15em; color:var(--navy); margin-bottom:7px; }
+.bi-title { font-size:13px; font-weight:800; color:var(--navy); margin-bottom:6px; line-height:1.3; }
+.bi-desc { font-size:11px; color:#666; line-height:1.55; }
+
+/* ── STEP FLOW ── */
+.steps { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+.step { background:#fff; border:1px solid var(--g200); border-radius:var(--r); padding:20px 16px; }
+.step-d { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.07); border-radius:var(--r); padding:20px 16px; }
+.st-num { font-family:var(--mono); font-size:1rem; font-weight:700; color:var(--navy); margin-bottom:8px; }
+.st-num-w { font-family:var(--mono); font-size:1rem; font-weight:700; color:var(--green); margin-bottom:8px; }
+.st-title { font-size:13px; font-weight:800; color:var(--navy); margin-bottom:6px; line-height:1.3; }
+.st-title-w { font-size:13px; font-weight:800; color:#fff; margin-bottom:6px; }
+.st-body { font-size:12px; color:var(--g600); line-height:1.65; }
+.st-body-w { font-size:12px; color:rgba(255,255,255,.5); line-height:1.65; }
+
+/* ── GRC COMPLIANCE ── */
+.comp-status { display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; }
+.dot-red   { width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0; }
+.dot-amber { width:7px;height:7px;border-radius:50%;background:var(--amber);flex-shrink:0; }
+.dot-green { width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0; }
+
+/* ── SECTION TITLE ── */
+.sec-title { font-size:13.5px; font-weight:700; color:var(--navy); margin-bottom:14px; display:flex; align-items:center; gap:8px; text-transform:uppercase; letter-spacing:.04em; }
+.sec-title::after { content:''; flex:1; height:1px; background:var(--g200); margin-left:6px; }
+.sec-title-w { font-size:13.5px; font-weight:700; color:rgba(255,255,255,.4); margin-bottom:14px; display:flex; align-items:center; gap:8px; text-transform:uppercase; letter-spacing:.04em; }
+.sec-title-w::after { content:''; flex:1; height:1px; background:rgba(255,255,255,.07); margin-left:6px; }
+
+/* ── VIEWS ── */
+.view { display:none; }
+.view.active { display:block; }
+
+/* ── FOOTER ── */
+.foot { background:#fff; border-top:1px solid var(--g200); padding:12px 48px; display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--g600); margin-left:var(--sidebar); font-weight:500; }
+.foot a { color:var(--red); }
+
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--g200); border-radius:3px; }
+
+@media print {
+  @page { margin:0; size:A4; }
+  .topbar, .sidebar, .foot { display:none !important; }
+  .main { margin-left:0 !important; margin-top:0 !important; }
+  .view { display:block !important; }
+  #view-se  { page-break-before:always; break-before:page; }
+  #view-grc { page-break-before:always; break-before:page; }
+  #print-toc { display:flex !important; }
+  .sec, .hero { padding:32px 36px; }
+  .hero-orb1, .hero-orb2 { display:none; }
+  .stat-card:hover, .fc:hover { transform:none; box-shadow:none; }
+  .stat-grid { grid-template-columns:repeat(5,1fr); }
+  .card-row { grid-template-columns:repeat(3,1fr); }
+  .pillars { grid-template-columns:repeat(3,1fr); }
+  .steps { grid-template-columns:repeat(4,1fr); }
+  .pq-grid { grid-template-columns:repeat(4,1fr); }
+  .bi-grid { grid-template-columns:repeat(5,1fr); }
+  h1 { font-size:34px; }
+  h2 { font-size:22px; }
+  .hs-n { font-size:30px; }
+  .sc-val { font-size:26px; }
+  .sec-dark, .hero { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .sec-white, .sec-light, .sec-cream { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .fc, .card, .stat-card, .tbl-wrap, .alert, .strip { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .pillar, .step, .bi-cell, .pq { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  #print-toc { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .hero-stats { gap:28px; }
+  .fc { page-break-inside:avoid; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="tb-logo">
+    <svg class="tb-icon" viewBox="0 0 30 30" fill="none">
+      <path d="M15 2L27 8.5V21.5L15 28L3 21.5V8.5L15 2Z" fill="#E31837"/>
+      <path d="M10 14.5L13.5 19L20 11" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="tb-word">veracode</span>
+  </div>
+  <div class="tb-div"></div>
+  <span class="tb-sub">External Attack Surface Management</span>
+  <div class="role-tabs">
+    <button class="role-tab active" onclick="setRole('ciso',this)">CISO</button>
+    <button class="role-tab" onclick="setRole('se',this)">Security Engineer</button>
+    <button class="role-tab" onclick="setRole('grc',this)">GRC</button>
+  </div>
+  <div class="tb-right">
+    <span class="tb-pill passive">Passive Discovery</span>
+    <span class="tb-scan">{{ seed_domain_0 }} · {{ scan_date }}</span>
+  </div>
+</header>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar"></nav>
+
+<div class="main" id="main-content">
+
+<!-- PRINT COVER -->
+<div id="print-toc" style="display:none; flex-direction:column; justify-content:space-between; min-height:100vh; background:#060C1A; padding:72px 64px; position:relative; overflow:hidden; page-break-after:always; break-after:page;">
+  <div style="position:absolute;top:-120px;right:-100px;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(0,195,137,.06) 0%,transparent 70%);pointer-events:none;"></div>
+  <div style="position:absolute;bottom:-80px;left:-60px;width:350px;height:350px;border-radius:50%;background:rgba(227,24,55,.04);pointer-events:none;"></div>
+  <div>
+    <div style="display:flex;align-items:center;gap:9px;margin-bottom:64px;">
+      <svg width="28" height="28" viewBox="0 0 30 30" fill="none">
+        <path d="M15 2L27 8.5V21.5L15 28L3 21.5V8.5L15 2Z" fill="#E31837"/>
+        <path d="M10 14.5L13.5 19L20 11" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span style="color:#fff;font-size:17px;font-weight:800;letter-spacing:-.3px;text-transform:lowercase;font-family:'Inter',sans-serif;">veracode</span>
+    </div>
+    <div style="font-family:'JetBrains Mono','DM Mono',monospace;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.2em;color:#E31837;margin-bottom:16px;">External Attack Surface Management</div>
+    <h1 style="color:#fff;font-size:46px;font-weight:900;letter-spacing:-.04em;line-height:1.02;margin-bottom:16px;">{{ seed_domain_0 }}<br>Attack Surface<br>Report</h1>
+    <p style="font-size:15px;color:rgba(255,255,255,.45);max-width:480px;line-height:1.65;font-weight:400;margin-bottom:0;">Veracode EASM passive discovery scan · {{ scan_date }} · {{ seed_domain_count }} seed domain{% if seed_domain_count != 1 %}s{% endif %} · No agents or integrations</p>
+  </div>
+  <div style="margin:0;">
+    <div style="font-family:'JetBrains Mono','DM Mono',monospace;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.2em;color:rgba(255,255,255,.3);margin-bottom:24px;">Contents</div>
+    <a href="#view-ciso" style="display:flex;align-items:center;gap:20px;padding:20px 24px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:8px;margin-bottom:10px;text-decoration:none;color:inherit;">
+      <div style="width:40px;height:40px;border-radius:6px;background:rgba(227,24,55,.15);border:1px solid rgba(227,24,55,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="#E31837" stroke-width="1.4"><path d="M8 2L3 4.5v4C3 11 5.5 13.5 8 14c2.5-.5 5-3 5-5.5v-4L8 2z" stroke-linejoin="round"/></svg>
+      </div>
+      <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#fff;margin-bottom:3px;">CISO View</div><div style="font-size:12px;color:rgba(255,255,255,.4);">Executive summary · Risk posture · Top findings · Supply chain overview</div></div>
+      <div style="font-family:'JetBrains Mono','DM Mono',monospace;font-size:10px;color:rgba(255,255,255,.2);">→</div>
+    </a>
+    <a href="#view-se" style="display:flex;align-items:center;gap:20px;padding:20px 24px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:8px;margin-bottom:10px;text-decoration:none;color:inherit;">
+      <div style="width:40px;height:40px;border-radius:6px;background:rgba(37,99,235,.12);border:1px solid rgba(37,99,235,.22);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="#3B82F6" stroke-width="1.4"><circle cx="8" cy="8" r="6.5"/><circle cx="8" cy="8" r="3"/><circle cx="8" cy="8" r="1" fill="#3B82F6"/></svg>
+      </div>
+      <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#fff;margin-bottom:3px;">Security Engineer View</div><div style="font-size:12px;color:rgba(255,255,255,.4);">Asset inventory · CNAME records · Internal APIs · Bare IPs · Supplier vectors</div></div>
+      <div style="font-family:'JetBrains Mono','DM Mono',monospace;font-size:10px;color:rgba(255,255,255,.2);">→</div>
+    </a>
+    <a href="#view-grc" style="display:flex;align-items:center;gap:20px;padding:20px 24px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:8px;margin-bottom:0;text-decoration:none;color:inherit;">
+      <div style="width:40px;height:40px;border-radius:6px;background:rgba(0,195,137,.1);border:1px solid rgba(0,195,137,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="#00C389" stroke-width="1.4"><rect x="2" y="3" width="12" height="4" rx="1"/><rect x="2" y="9" width="12" height="4" rx="1"/><circle cx="5" cy="5" r=".8" fill="#00C389"/><circle cx="5" cy="11" r=".8" fill="#00C389"/></svg>
+      </div>
+      <div style="flex:1;"><div style="font-size:14px;font-weight:800;color:#fff;margin-bottom:3px;">GRC View</div><div style="font-size:12px;color:rgba(255,255,255,.4);">Data classification · Supplier register · Governance gaps · Remediation actions</div></div>
+      <div style="font-family:'JetBrains Mono','DM Mono',monospace;font-size:10px;color:rgba(255,255,255,.2);">→</div>
+    </a>
+  </div>
+  <div style="display:flex;gap:36px;padding-top:28px;border-top:1px solid rgba(255,255,255,.07);">
+    <div><div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-.04em;line-height:1;">{{ total_apps }}</div><div style="font-family:'JetBrains Mono','DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:rgba(255,255,255,.3);margin-top:4px;">Applications</div></div>
+    <div><div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-.04em;line-height:1;">{{ suppliers | length }}</div><div style="font-family:'JetBrains Mono','DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:rgba(255,255,255,.3);margin-top:4px;">Suppliers</div></div>
+    <div><div style="font-size:28px;font-weight:900;color:#E31837;letter-spacing:-.04em;line-height:1;">{{ investigation_count }}/{{ total_apps }}</div><div style="font-family:'JetBrains Mono','DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:rgba(255,255,255,.3);margin-top:4px;">Investigation</div></div>
+    <div><div style="font-size:28px;font-weight:900;color:#E31837;letter-spacing:-.04em;line-height:1;">{{ internal_api_findings | length }}</div><div style="font-family:'JetBrains Mono','DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:rgba(255,255,255,.3);margin-top:4px;">Internal APIs</div></div>
+    <div><div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-.04em;line-height:1;">{{ total_cnames }}</div><div style="font-family:'JetBrains Mono','DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:rgba(255,255,255,.3);margin-top:4px;">CNAME records</div></div>
+    <div><div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-.04em;line-height:1;">{{ seed_domain_count }}</div><div style="font-family:'JetBrains Mono','DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:rgba(255,255,255,.3);margin-top:4px;">Seed domain{% if seed_domain_count != 1 %}s{% endif %}</div></div>
+  </div>
+</div>
+
+{% include 'ciso.html' %}
+{% include 'se.html' %}
+{% include 'grc.html' %}
+
+</div><!-- /main-content -->
+
+<footer class="foot">
+  <span>Veracode External Attack Surface Management · <strong>{{ seed_domain_0 }}</strong> · Scan {{ scan_date }} · Passive discovery only</span>
+  <span><a href="https://www.veracode.com">veracode.com</a></span>
+</footer>
+
+<script>
+const REPORT_TARGET = {{ seed_domain_0 | tojson }};
+const REPORT_SCAN   = {{ scan_date | tojson }};
+const REPORT_CUSTOMER = {{ customer | tojson }};
+
+const NAV = {
+  ciso: [
+    { id:'ciso-hero',    label:'Executive Summary', icon:'grid',   badge:null },
+    { id:'ciso-ttv',     label:'How EASM Works',    icon:'clock',  badge:null },
+    { id:'ciso-posture', label:'Risk Posture',       icon:'shield', badge:{{ total_apps | tojson }} },
+    { id:'ciso-risks',   label:'Top Findings',       icon:'warn',   badge:{{ top_findings | length | tojson }} },
+    { id:'ciso-queue',   label:'Priority Queue',     icon:'list',   badge:null },
+    { id:'ciso-supply',  label:'Supply Chain',       icon:'chain',  badge:{{ suppliers | length | tojson }} },
+    { id:'ciso-model',   label:'Coverage Model',     icon:'layers', badge:null },
+  ],
+  se: [
+    { id:'se-hero',      label:'Technical Summary',  icon:'grid',   badge:null },
+    { id:'se-prio',      label:'Priority Assets',    icon:'target', badge:{{ priority_assets | length | tojson }} },
+    { id:'se-cnames',    label:'CNAME Records',      icon:'warn',   badge:{{ cname_findings | length | tojson }} },
+    { id:'se-api',       label:'APIs & Bare IPs',    icon:'server', badge:{{ internal_api_findings | length | tojson }} },
+    { id:'se-hygiene',   label:'Hygiene Summary',    icon:'shield', badge:null },
+    { id:'se-supply',    label:'Supplier Vectors',   icon:'chain',  badge:{{ suppliers | length | tojson }} },
+  ],
+  grc: [
+    { id:'grc-hero',     label:'GRC Summary',         icon:'grid',   badge:null },
+    { id:'grc-data',     label:'Data Classification', icon:'shield', badge:{{ pii_suppliers | length | tojson }} },
+    { id:'grc-bi',       label:'Intelligence Layer',  icon:'layers', badge:null },
+    { id:'grc-gaps',     label:'Governance Gaps',     icon:'warn',   badge:{{ findings | length | tojson }} },
+    { id:'grc-register', label:'Supplier Register',   icon:'list',   badge:{{ suppliers | length | tojson }} },
+    { id:'grc-plan',     label:'Action Plan',         icon:'check',  badge:{{ findings | length | tojson }} },
+  ]
+};
+
+const ICONS = {
+  grid:   '<svg fill="none" viewBox="0 0 16 16"><rect x="1" y="1" width="6" height="6" rx="1" fill="currentColor"/><rect x="9" y="1" width="6" height="6" rx="1" fill="currentColor" opacity=".5"/><rect x="1" y="9" width="6" height="6" rx="1" fill="currentColor" opacity=".5"/><rect x="9" y="9" width="6" height="6" rx="1" fill="currentColor" opacity=".5"/></svg>',
+  clock:  '<svg fill="none" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.4"/><path d="M8 4.5v4l2.5 2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  shield: '<svg fill="none" viewBox="0 0 16 16"><path d="M8 2L3 4.5v4C3 11 5.5 13.5 8 14c2.5-.5 5-3 5-5.5v-4L8 2z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>',
+  warn:   '<svg fill="none" viewBox="0 0 16 16"><path d="M8 2L2 14h12L8 2z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M8 6v4M8 11.2v.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+  list:   '<svg fill="none" viewBox="0 0 16 16"><path d="M5 4h8M5 8h8M5 12h8M2 4h.5M2 8h.5M2 12h.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+  chain:  '<svg fill="none" viewBox="0 0 16 16"><path d="M6 8a2 2 0 0 1 2-2h2.5a2 2 0 0 1 0 4H8a2 2 0 0 1-2-2z" stroke="currentColor" stroke-width="1.4"/><path d="M10 8a2 2 0 0 1-2 2H5.5a2 2 0 0 1 0-4H8a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="1.4"/></svg>',
+  target: '<svg fill="none" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="8" r="3" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="8" r="1" fill="currentColor"/></svg>',
+  key:    '<svg fill="none" viewBox="0 0 16 16"><circle cx="6" cy="6.5" r="3.5" stroke="currentColor" stroke-width="1.4"/><path d="M8.5 9L14 13.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M12 12l-1.5 1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+  server: '<svg fill="none" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="4" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="2" y="9" width="12" height="4" rx="1" stroke="currentColor" stroke-width="1.4"/><circle cx="5" cy="5" r=".8" fill="currentColor"/><circle cx="5" cy="11" r=".8" fill="currentColor"/></svg>',
+  globe:  '<svg fill="none" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.4"/><path d="M8 1.5C8 1.5 5.5 4 5.5 8s2.5 6.5 2.5 6.5M8 1.5C8 1.5 10.5 4 10.5 8S8 14.5 8 14.5M1.5 8h13" stroke="currentColor" stroke-width="1.4"/></svg>',
+  layers: '<svg fill="none" viewBox="0 0 16 16"><path d="M8 2L2 5l6 3 6-3-6-3z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M2 8l6 3 6-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M2 11l6 3 6-3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+  check:  '<svg fill="none" viewBox="0 0 16 16"><path d="M3 8l4 4 6-6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+};
+
+let currentRole = 'ciso';
+
+function buildSidebar(role) {
+  const sb = document.getElementById('sidebar');
+  const items = NAV[role];
+  let html = '<div class="sb-label">Navigation</div>';
+  items.forEach((item, i) => {
+    const badge = item.badge !== null ? `<span class="sb-ct">${item.badge}</span>` : '';
+    html += `<a class="sb-item${i===0?' active':''}" onclick="scrollToSection(${i},event)" href="#">
+      <svg class="sb-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor">${ICONS[item.icon]||''}</svg>
+      ${item.label}${badge}
+    </a>`;
+  });
+  html += '<div class="sb-sep"></div>';
+  html += `<div class="sb-meta">
+    <div class="sb-mlab">Target</div><div class="sb-mval"><span>${REPORT_TARGET}</span></div>
+    <div class="sb-mlab" style="margin-top:8px">Scan</div><div class="sb-mval"><span>${REPORT_SCAN}</span></div>
+    <div class="sb-mlab" style="margin-top:8px">Client</div><div class="sb-mval"><span>${REPORT_CUSTOMER}</span></div>
+    <div class="sb-mlab" style="margin-top:8px">View</div><div class="sb-mval"><span>${role.toUpperCase()}</span></div>
+  </div>`;
+  sb.innerHTML = html;
+}
+
+function scrollToSection(idx, e) {
+  e.preventDefault();
+  const view = document.getElementById('view-' + currentRole);
+  const sections = view.querySelectorAll('.hero, .sec');
+  document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
+  e.currentTarget.classList.add('active');
+  if (sections[idx]) sections[idx].scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function setRole(role, btn) {
+  currentRole = role;
+  document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + role).classList.add('active');
+  buildSidebar(role);
+  window.scrollTo(0, 0);
+}
+
+buildSidebar('ciso');
+
+window.addEventListener('scroll', () => {
+  const view = document.getElementById('view-' + currentRole);
+  const secs = view.querySelectorAll('.hero, .sec');
+  const sbItems = document.querySelectorAll('.sb-item');
+  let current = 0;
+  secs.forEach((s, i) => {
+    if (s.getBoundingClientRect().top <= 120) current = i;
+  });
+  sbItems.forEach(i => i.classList.remove('active'));
+  if (sbItems[current]) sbItems[current].classList.add('active');
+});
+</script>
+</body>
+</html>

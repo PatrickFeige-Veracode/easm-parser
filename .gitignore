@@ -1,0 +1,10 @@
+inputs/
+outputs/
+CLAUDE.md
+.venv/
+__pycache__/
+*.pyc
+.mypy_cache/
+.ruff_cache/
+dist/
+*.egg-info/

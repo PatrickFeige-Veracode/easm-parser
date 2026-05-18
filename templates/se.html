@@ -1,0 +1,221 @@
+<!-- ═══════════════════════════════════════════
+     SECURITY ENGINEER VIEW
+═══════════════════════════════════════════ -->
+<div class="view" id="view-se">
+
+  <!-- Hero -->
+  <div class="hero sec-dark dots-d" id="se-hero">
+    <div class="hero-orb1"></div>
+    <div class="hero-tag">Technical Analysis · {{ seed_domain_0 }}</div>
+    <h1>Full technical asset inventory<br><span style="color:var(--red)">&amp; exposure detail.</span></h1>
+    <p class="hero-sub">Asset-level breakdown: subdomains, dangling CNAMEs, internal APIs, bare IPs, hygiene findings, and supplier vector detail. Scan date: {{ scan_date }}.</p>
+    <div class="hero-stats">
+      <div><div class="hs-n">{{ total_apps }}</div><div class="hs-l">Applications</div></div>
+      <div><div class="hs-n">{{ unique_fqdns }}</div><div class="hs-l">Unique FQDNs</div></div>
+      <div><div class="hs-n">{{ total_cnames }}</div><div class="hs-l">CNAME records</div></div>
+      <div><div class="hs-n amber">{{ tag_counts.get('headerMissingHsts', 0) + tag_counts.get('hstsMisconfig', 0) }}</div><div class="hs-l">HSTS issues</div></div>
+      <div><div class="hs-n red">{{ internal_api_findings | length }}</div><div class="hs-l">internalApi tagged</div></div>
+    </div>
+  </div>
+
+  <!-- Priority assets -->
+  <div class="sec sec-white" id="se-prio">
+    <div class="eyebrow">Attack surface · Priority assets</div>
+    <h2>Highest-interest targets.</h2>
+    {% if priority_assets %}
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Asset</th><th>Port</th><th>Grade</th><th>Status</th><th>CNAME</th><th>Notable tags</th></tr></thead>
+        <tbody>
+          {% for asset in priority_assets %}
+          <tr>
+            <td class="mn">{{ asset.name }}</td>
+            <td class="mn">{{ asset.port }}</td>
+            <td><span class="risk-{{ asset.grade }}">{{ asset.grade }}</span></td>
+            <td><span class="b {% if asset.status == 'online' %}b-green{% elif asset.status == 'notFound' %}b-amber{% else %}b-grey{% endif %}">{{ asset.status }}</span></td>
+            <td class="mn" style="font-size:10px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ asset.cname }}</td>
+            <td>
+              {% for tag in asset.tags[:3] %}
+              <span class="b {% if tag in ('internalApi','suspiciousSubdomain','hstsMisconfig','headerMissingHsts','hostnameCertificateMismatch') %}b-red{% else %}b-grey{% endif %}">{{ tag }}</span>
+              {% endfor %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="alert alert-green"><span class="al-icon">✓</span><div class="al-body">No priority assets identified in this scan.</div></div>
+    {% endif %}
+  </div>
+
+  <!-- Auth cluster (conditional) -->
+  {% if auth_findings %}
+  <div class="sec sec-light" id="se-auth">
+    <div class="eyebrow">Auth infrastructure · OAuth / Federation / Token</div>
+    <h2>Auth endpoints with HSTS issues.</h2>
+    <div class="alert alert-amber">
+      <span class="al-icon">⚡</span>
+      <div class="al-body"><strong>HSTS findings on auth endpoints</strong>The following auth-pattern endpoints have HSTS absent or misconfigured.</div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Asset</th><th>Port</th><th>HSTS tag</th><th>CNAME</th></tr></thead>
+        <tbody>
+          {% for f in auth_findings %}
+          <tr>
+            <td class="mn">{{ f.asset }}</td>
+            <td class="mn">{{ f.port }}</td>
+            <td>
+              {% if 'hstsMisconfig' in f.tags %}<span class="b b-red">hstsMisconfig</span>
+              {% elif 'headerMissingHsts' in f.tags %}<span class="b b-red">headerMissingHsts</span>
+              {% else %}<span class="b b-grey">—</span>{% endif %}
+            </td>
+            <td class="mn">{{ f.cname if f.cname else '—' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- CNAME records -->
+  <div class="sec sec-white" id="se-cnames">
+    <div class="eyebrow">DNS · CNAME records</div>
+    <h2>{{ total_cnames }} CNAME records — {{ cname_findings | length }} point to third-party targets outside the customer estate.</h2>
+    <p style="color:var(--g600);max-width:680px;margin-bottom:18px">The dataset contains {{ total_cnames }} CNAME records. {{ cname_findings | length }} distinct non-customer CNAME destinations were identified. The finding status of these CNAMEs (claimed vs unclaimed) requires manual verification against each third-party platform.</p>
+    {% for f in cname_findings %}
+    <div class="fc {{ f.fc_class }}">
+      <div class="fc-hd">
+        <div class="fc-title">{{ f.title }}</div>
+        <span class="risk-{{ f.grade }}">{{ f.grade }}</span>
+      </div>
+      <div class="fc-body">
+        <code class="code-block">CNAME → {{ f.cname }}</code>
+        {{ f.body }}
+      </div>
+      <div class="fc-meta">
+        {% for tag in f.tags[:4] %}<span class="b b-{% if tag in ('headerMissingHsts','hstsMisconfig','hostnameCertificateMismatch') %}red{% elif tag in ('liveApp','fix') %}grey{% else %}amber{% endif %}">{{ tag }}</span>{% endfor %}
+        <span class="b b-navy">Port {{ f.port }}</span>
+      </div>
+    </div>
+    {% else %}
+    <div class="alert alert-green"><span class="al-icon">✓</span><div class="al-body">No third-party CNAME targets identified.</div></div>
+    {% endfor %}
+  </div>
+
+  <!-- Internal APIs & bare IPs -->
+  <div class="sec sec-light" id="se-api">
+    <div class="eyebrow">Exposed infrastructure</div>
+    <h2>Internal APIs &amp; bare IP addresses.</h2>
+
+    <div class="sec-title">Internal API Tagged Assets — Externally Resolvable</div>
+    {% if internal_api_findings %}
+    <div class="tbl-wrap" style="margin-bottom:24px">
+      <table>
+        <thead><tr><th>Asset</th><th>Port</th><th>Status</th><th>Grade</th><th>CNAME</th><th>HSTS</th></tr></thead>
+        <tbody>
+          {% for f in internal_api_findings %}
+          <tr>
+            <td class="mn">{{ f.asset }}</td>
+            <td class="mn">{{ f.port }}</td>
+            <td><span class="b {% if f.status == 'online' %}b-green{% elif f.status == 'notFound' %}b-amber{% else %}b-grey{% endif %}">{{ f.status }}</span></td>
+            <td><span class="risk-{{ f.grade }}">{{ f.grade }}</span></td>
+            <td class="mn">{{ f.cname if f.cname and f.cname not in ('—','') else '—' }}</td>
+            <td>
+              {% if 'headerMissingHsts' in f.tags or 'hstsMisconfig' in f.tags %}
+              <span class="b b-red">⚠ HSTS issue</span>
+              {% else %}
+              <span class="b b-grey">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="alert alert-green" style="margin-bottom:24px"><span class="al-icon">✓</span><div class="al-body">No internalApi-tagged assets found.</div></div>
+    {% endif %}
+
+    <div class="sec-title">Bare IP Addresses</div>
+    {% if bare_ip_rows %}
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>IP</th><th>Port</th><th>Status</th><th>Tags</th></tr></thead>
+        <tbody>
+          {% for row in bare_ip_rows[:20] %}
+          <tr>
+            <td class="mn">{{ row.ip }}</td>
+            <td class="mn">{{ row.port }}</td>
+            <td><span class="b {% if row.status == 'online' %}b-green{% elif row.status == 'notFound' %}b-amber{% else %}b-grey{% endif %}">{{ row.status }}</span></td>
+            <td>{% for tag in row.tags[:3] %}<span class="b b-grey">{{ tag }}</span> {% endfor %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if bare_ip_rows | length > 20 %}
+    <p style="font-size:12px;color:var(--g600);margin-top:8px">Showing 20 of {{ bare_ip_rows | length }} bare IPs.</p>
+    {% endif %}
+    {% else %}
+    <div class="alert alert-green"><span class="al-icon">✓</span><div class="al-body">No bare IP addresses found.</div></div>
+    {% endif %}
+  </div>
+
+  <!-- Hygiene summary -->
+  <div class="sec sec-white" id="se-hygiene">
+    <div class="eyebrow">Hygiene summary</div>
+    <h2>Header and hygiene tags across all {{ total_apps }} applications.</h2>
+    <div style="background:#fff;border:1px solid var(--g200);border-radius:var(--r);padding:22px 24px;margin-bottom:20px">
+      {% for tag, count in top_tags %}
+      <div class="pr-row" {% if loop.last %}style="margin-bottom:0"{% endif %}>
+        <span class="pr-lab">{{ tag }}</span>
+        <div class="pr-bar"><div class="pr-fill {% if 'hsts' in tag.lower() or 'csp' in tag.lower() %}{% else %}a{% endif %}" style="width:{{ tag_pct.get(tag, 0) }}%"></div></div>
+        <span class="pr-val">{{ count }} / {{ total_apps }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="card-row-2" style="margin-top:0">
+      <div class="card">
+        <h3 style="margin-bottom:10px">HTTP enabled (clearHttp = true)</h3>
+        <div style="font-size:28px;font-weight:700;color:var(--amber);margin-bottom:8px">{{ clear_http_count }} / {{ total_apps }}</div>
+        <p style="font-size:13px;color:var(--g600);line-height:1.6">{{ clear_http_count }} application{% if clear_http_count != 1 %}s{% endif %} have clearHttp enabled — accessible over unencrypted HTTP in addition to HTTPS.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin-bottom:10px">Staging assets resolvable</h3>
+        <div style="font-size:28px;font-weight:700;color:var(--red);margin-bottom:8px">{{ staging_findings | length }}</div>
+        <p style="font-size:13px;color:var(--g600);line-height:1.6">{{ staging_findings | length }} staging/test/dev environment{% if staging_findings | length != 1 %}s{% endif %} are externally resolvable with a non-notFound status, widening the attack surface.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supplier vectors -->
+  <div class="sec sec-light" id="se-supply">
+    <div class="eyebrow">Supply chain · Supplier vector detail</div>
+    <h2>{{ suppliers | length }} supplier{% if suppliers | length != 1 %}s{% endif %} — connection vectors and proximity.</h2>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Supplier</th><th>Proximity</th><th>Vectors</th><th>PII</th><th>PCI</th><th>AI</th></tr></thead>
+        <tbody>
+          {% for s in suppliers %}
+          <tr>
+            <td><strong>{{ s.name }}</strong></td>
+            <td class="mn">{{ "%.2f"|format(s.proximity) }}%</td>
+            <td>
+              {% for vec, cnt in s.vectors.items() %}
+              <span class="b b-grey">{{ vec }}:{{ cnt }}</span>
+              {% endfor %}
+            </td>
+            <td>{% if s.is_pii %}<span class="b b-red">PII</span>{% else %}<span class="b b-grey">—</span>{% endif %}</td>
+            <td>{% if s.is_pci %}<span class="b b-red">PCI</span>{% else %}<span class="b b-grey">—</span>{% endif %}</td>
+            <td>{% if s.is_ai %}<span class="b b-blue">AI</span>{% else %}<span class="b b-grey">—</span>{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /view-se -->

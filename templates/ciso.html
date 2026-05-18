@@ -1,0 +1,222 @@
+<!-- ═══════════════════════════════════════════
+     CISO VIEW
+═══════════════════════════════════════════ -->
+<div class="view active" id="view-ciso">
+
+  <!-- Hero -->
+  <div class="hero sec-dark dots-d" id="ciso-hero">
+    <div class="hero-orb1"></div><div class="hero-orb2"></div>
+    <div class="hero-tag">⚠ {{ investigation_count }} of {{ total_apps }} applications flagged for investigation</div>
+    <h1>Your external digital estate,<br>as an attacker sees it.</h1>
+    <p class="hero-sub">Veracode EASM started with {{ seed_domain_count }} seed domain{% if seed_domain_count != 1 %}s{% endif %} — <code style="color:rgba(255,255,255,.7);font-size:.9em">{{ seed_domain_0 }}</code> — and without agents or integrations, using passive discovery only.</p>
+    <div class="hero-stats">
+      <div><div class="hs-n">{{ total_apps }}</div><div class="hs-l">Applications discovered</div></div>
+      <div><div class="hs-n">{{ unique_fqdns }}</div><div class="hs-l">Unique FQDNs</div></div>
+      <div><div class="hs-n">{{ suppliers | length }}</div><div class="hs-l">Named suppliers</div></div>
+      <div><div class="hs-n red">{{ cname_findings | length }}</div><div class="hs-l">Third-party CNAME targets</div></div>
+      <div><div class="hs-n red">{{ internal_api_findings | length }}</div><div class="hs-l">Internal APIs externally tagged</div></div>
+      <div><div class="hs-n amber">{{ seed_domain_count }}</div><div class="hs-l">Seed domain{% if seed_domain_count != 1 %}s{% endif %} used</div></div>
+    </div>
+  </div>
+
+  <!-- How passive discovery works -->
+  <div class="sec sec-white dots-l" id="ciso-ttv">
+    <div class="eyebrow">Discovery · How it works</div>
+    <h2>One seed domain. Passive signals. No credentials.</h2>
+    <p style="max-width:680px;color:var(--g600);margin-bottom:30px">Everything in this report was derived passively from <code>{{ seed_domain_0 }}</code> alone — no agents, no authenticated requests, no prior asset inventory. Veracode EASM chains four publicly-observable data sources to build a complete picture of the external estate.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="st-num" style="font-size:.75rem;color:var(--red)">01 — DNS</div>
+        <div class="st-title">Subdomain enumeration</div>
+        <div class="st-body">Certificate transparency logs, passive DNS, and zone records surface subdomains, CNAME chains, and NS delegations — the {{ unique_fqdns }} FQDNs and {{ total_cnames }} CNAME records in this report.</div>
+      </div>
+      <div class="step">
+        <div class="st-num" style="font-size:.75rem;color:var(--red)">02 — TLS / PKI</div>
+        <div class="st-title">Certificate mapping</div>
+        <div class="st-body">Every certificate on a live endpoint is inspected for SANs, issuer, and hostname match — surfacing mismatches and mapping which certificate authority is in use per asset.</div>
+      </div>
+      <div class="step">
+        <div class="st-num" style="font-size:.75rem;color:var(--red)">03 — IP &amp; ASN</div>
+        <div class="st-title">Network attribution</div>
+        <div class="st-body">IP addresses are attributed to ASNs and mapped to suppliers — cloud providers, CDNs, and hosting vendors. {{ bare_ip_count }} bare IPs were found without associated hostname records.</div>
+      </div>
+      <div class="step">
+        <div class="st-num" style="font-size:.75rem;color:var(--red)">04 — HTTP headers &amp; software</div>
+        <div class="st-title">Technology fingerprinting</div>
+        <div class="st-body">A passive HTTP probe of each live endpoint reads response headers and server banners — identifying missing security headers across {{ total_apps }} applications.</div>
+      </div>
+    </div>
+    <div class="strip strip-blue" style="margin-top:20px">
+      <p><strong>How supplier connections are inferred:</strong> When a CNAME resolves to a third-party edge or CDN, an SPF or MX record names an email provider, or a response header carries a cloud or platform signature — EASM records a supplier connection vector. The {{ suppliers | length }} suppliers in this report were identified entirely from these passive signals, not from contract or procurement data.</p>
+    </div>
+  </div>
+
+  <!-- Risk posture -->
+  <div class="sec sec-light" id="ciso-posture">
+    <div class="eyebrow">Attack surface · Risk posture</div>
+    <h2>What Veracode EASM found.</h2>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="sc-val">{{ total_apps }}</div><div class="sc-lab">Applications discovered</div></div>
+      <div class="stat-card"><div class="sc-val">{{ unique_fqdns }}</div><div class="sc-lab">Unique FQDNs</div></div>
+      <div class="stat-card"><div class="sc-val">{{ bare_ip_count }}</div><div class="sc-lab">Bare IP addresses</div></div>
+      <div class="stat-card"><div class="sc-val">{{ total_cnames }}</div><div class="sc-lab">CNAME records</div></div>
+      {% if cname_findings %}
+      <div class="stat-card hi"><div class="sc-val red">{{ cname_findings | length }}</div><div class="sc-lab">Third-party CNAME targets</div></div>
+      {% endif %}
+      {% if internal_api_findings %}
+      <div class="stat-card hi"><div class="sc-val red">{{ internal_api_findings | length }}</div><div class="sc-lab">internalApi-tagged assets</div></div>
+      {% endif %}
+      <div class="stat-card"><div class="sc-val">{{ suppliers | length }}</div><div class="sc-lab">Named suppliers</div></div>
+      <div class="stat-card hi"><div class="sc-val red">{{ investigation_count }}/{{ total_apps }}</div><div class="sc-lab">Recommended programme: investigation</div></div>
+      {% for grade, count in grade_counts.items() %}
+      <div class="stat-card"><div class="sc-val {% if grade == 'F' or grade == 'D' %}red{% elif grade == 'B' %}amber{% endif %}">{{ count }}</div><div class="sc-lab">Grade {{ grade }} applications</div></div>
+      {% endfor %}
+    </div>
+    <div class="alert alert-red">
+      <span class="al-icon">⚠</span>
+      <div class="al-body"><strong>No application has been assessed and cleared</strong>Veracode EASM assigned a recommended security programme of <code>investigation</code> to all {{ investigation_count }} discovered applications. This represents unquantified risk across the full estate.</div>
+    </div>
+  </div>
+
+  <!-- Top findings -->
+  <div class="sec sec-white" id="ciso-risks">
+    <div class="eyebrow">Findings · Top priority items</div>
+    <h2>Findings that require leadership attention.</h2>
+    {% for f in top_findings %}
+    <div class="fc {{ f.fc_class }}">
+      <div class="fc-hd">
+        <div class="fc-title">{{ loop.index }} — {{ f.title }}</div>
+        <span class="risk-{{ f.grade }}">{{ f.grade }}</span>
+      </div>
+      <div class="fc-body">{{ f.body }}</div>
+      <div class="fc-meta">
+        {% for tag in f.tags[:4] %}<span class="b b-grey">{{ tag }}</span>{% endfor %}
+        <span class="b b-navy">{{ f.category }}</span>
+      </div>
+    </div>
+    {% else %}
+    <div class="alert alert-green"><span class="al-icon">✓</span><div class="al-body">No significant findings detected in this scan.</div></div>
+    {% endfor %}
+  </div>
+
+  <!-- Priority queue -->
+  <div class="sec sec-light" id="ciso-queue">
+    <div class="eyebrow">Scan output · Recommended programme</div>
+    <h2>What the scan assigned across all {{ total_apps }} applications.</h2>
+    <p style="color:var(--g600);max-width:640px;margin-bottom:24px">Each application receives a <strong>Recommended Security Programme</strong> and a <strong>Risk Grade</strong> from the scan engine. These values come directly from the export — no analyst interpretation applied.</p>
+    <div class="pq-grid" style="margin-bottom:28px">
+      <div class="pq pq-fn">
+        <div class="pq-name">Needs immediate attention</div>
+        <div class="pq-body">{{ crit_count }} finding{% if crit_count != 1 %}s{% endif %} — F-grade assets and exploitable staging environments</div>
+      </div>
+      <div class="pq pq-fs">
+        <div class="pq-name">Address soon</div>
+        <div class="pq-body">{{ high_count }} finding{% if high_count != 1 %}s{% endif %} — D-grade assets and CNAME exposure requiring verification</div>
+      </div>
+      <div class="pq pq-mo">
+        <div class="pq-name">Monitor and assign</div>
+        <div class="pq-body">{{ med_count }} finding{% if med_count != 1 %}s{% endif %} — B-grade and hygiene items</div>
+      </div>
+      <div class="pq pq-tr">
+        <div class="pq-name">Track and review</div>
+        <div class="pq-body">{{ track_count }} finding{% if track_count != 1 %}s{% endif %} — A-grade, notFound, or informational</div>
+      </div>
+    </div>
+    <div class="card-row" style="margin-bottom:20px">
+      <div class="card" style="border-left:4px solid var(--red)">
+        <div style="font-family:var(--mono);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--red);margin-bottom:10px">Recommended Security Programme</div>
+        <div style="font-size:28px;font-weight:700;color:var(--blue-lt);margin-bottom:8px">investigation</div>
+        <p style="font-size:13px;color:var(--g600);line-height:1.6">Assigned to <strong>{{ investigation_count }} / {{ total_apps }}</strong> applications. The <code>investigation</code> value means Veracode EASM recommends active security review — no security programme has yet been run against these assets.</p>
+      </div>
+      <div class="card">
+        <div style="font-family:var(--mono);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--navy);margin-bottom:14px">Risk Grade Distribution</div>
+        {% for grade, count in grade_counts.items() %}
+        <div class="pr-row">
+          <span class="pr-lab" style="font-weight:600">Grade {{ grade }}</span>
+          <div class="pr-bar"><div class="pr-fill {% if grade == 'B' %}b{% elif grade == 'F' or grade == 'D' %}{% else %}a{% endif %}" style="width:{{ grade_pct.get(grade, 0) }}%"></div></div>
+          <span class="pr-val">{{ count }} / {{ total_apps }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="card">
+        <div style="font-family:var(--mono);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--navy);margin-bottom:14px">Finding Tags — All {{ total_apps }} Applications</div>
+        {% for tag, count in top_tags %}
+        <div class="pr-row" {% if loop.last %}style="margin-bottom:0"{% endif %}>
+          <span class="pr-lab">{{ tag }}</span>
+          <div class="pr-bar"><div class="pr-fill {% if loop.index0 % 3 == 0 %}{% elif loop.index0 % 3 == 1 %}b{% else %}a{% endif %}" style="width:{{ tag_pct.get(tag, 0) }}%"></div></div>
+          <span class="pr-val">{{ count }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Supply chain -->
+  <div class="sec sec-dark dots-d" id="ciso-supply">
+    <div class="eyebrow-w">Supply chain · Proximity scores</div>
+    <h2 style="color:#fff">{{ suppliers | length }} supplier{% if suppliers | length != 1 %}s{% endif %}. Proximity measures embedded dependency.</h2>
+    <p style="color:rgba(255,255,255,.55);max-width:640px;margin-bottom:28px">Proximity score measures how deeply a supplier is embedded in the {{ customer }} attack surface — how many DNS, certificate, software, and header connections exist between the supplier and your live estate.</p>
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--r);padding:22px 24px;margin-bottom:20px">
+      {% for s in top_suppliers %}
+      <div class="pr-row">
+        <span class="pr-lab" style="color:rgba(255,255,255,.7)">{{ s.name }}</span>
+        <div class="pr-bar"><div class="pr-fill {% if s.proximity > 40 %}{% elif s.proximity > 25 %}a{% else %}grey{% endif %}" style="width:{{ s.proximity }}%"></div></div>
+        <span class="pr-val">{{ "%.1f"|format(s.proximity) }}%</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% if pii_suppliers %}
+    <div class="alert alert-amber" style="background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.2);flex-direction:column;gap:8px">
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <span class="al-icon">⚡</span>
+        <strong style="color:var(--amber);font-size:12.5px">{{ pii_suppliers | length }} supplier{% if pii_suppliers | length != 1 %}s{% endif %} classified as PII-connected — connected via SPF/MX records</strong>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;padding-left:28px">
+        {% for s in pii_suppliers %}
+        <span style="font-size:11.5px;font-weight:600;color:rgba(255,255,255,.85);background:rgba(245,158,11,.18);border:1px solid rgba(245,158,11,.3);padding:3px 10px;border-radius:4px">{{ s.name }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Coverage model -->
+  <div class="sec sec-cream dots-l" id="ciso-model">
+    <div class="eyebrow-d">Veracode · Full coverage model</div>
+    <h2>Inside-out. Outside-in. Closed loop.</h2>
+    <p style="color:var(--g600);max-width:640px;margin-bottom:28px">Veracode covers the full application and ecosystem risk surface — from source code to the suppliers connected to your deployed estate.</p>
+    <div class="pillars">
+      <div class="pillar">
+        <div class="p-num">VERACODE CODE</div>
+        <div class="p-title">Inside-out</div>
+        <ul>
+          <li>SAST — binary analysis of source code</li>
+          <li>SCA — open-source dependency risk</li>
+          <li>DAST — running web app testing</li>
+          <li>Package Firewall — supply-chain attack prevention at build time</li>
+        </ul>
+      </div>
+      <div class="pillar" style="background:var(--navy);border-color:var(--navy)">
+        <div class="p-num" style="color:rgba(255,184,0,.9)">VERACODE EASM</div>
+        <div class="p-title" style="color:#fff">Outside-in</div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:7px">
+          <li style="color:rgba(255,255,255,.75);padding-left:14px;position:relative"><span style="position:absolute;left:0;color:rgba(255,184,0,.9);font-weight:700">→</span>EASM — external attack surface discovery</li>
+          <li style="color:rgba(255,255,255,.75);padding-left:14px;position:relative"><span style="position:absolute;left:0;color:rgba(255,184,0,.9);font-weight:700">→</span>Supply Chain Intelligence — vendor-to-asset mapping</li>
+          <li style="color:rgba(255,255,255,.75);padding-left:14px;position:relative"><span style="position:absolute;left:0;color:rgba(255,184,0,.9);font-weight:700">→</span>Smart Findings — AI-detected exposures on deployed assets</li>
+          <li style="color:rgba(255,255,255,.75);padding-left:14px;position:relative"><span style="position:absolute;left:0;color:rgba(255,184,0,.9);font-weight:700">→</span>Business intelligence layer — 150+ supplier data points</li>
+        </ul>
+      </div>
+      <div class="pillar">
+        <div class="p-num">JOINTLY</div>
+        <div class="p-title">Closed loop</div>
+        <ul>
+          <li>Discover deployed assets, prioritise what to test</li>
+          <li>Map third-party software to upstream dependency risk</li>
+          <li>One risk narrative for security, procurement and the board</li>
+          <li>Delta monitoring — new exposures surfaced on every scan</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /view-ciso -->

@@ -9,11 +9,23 @@ No Claude. No API keys. No manual steps after.
 
 ## Install
 
+Requires [pipx](https://pipx.pypa.io) — it handles the Python environment for you.
+
+**macOS (Homebrew):**
 ```bash
+brew install pipx
 git clone <repo>
-cd easm-parser
-pip install -e .
+pipx install -e ./easm-parser
 ```
+
+**Linux / Windows:**
+```bash
+pip install pipx
+git clone <repo>
+pipx install -e ./easm-parser
+```
+
+`easm-report` will be on your PATH immediately — no virtual environment to activate.
 
 ---
 

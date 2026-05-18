@@ -78,7 +78,7 @@ The snapshot includes:
 - **Top 5 suppliers** — Third-party supply chain exposure by proximity
 - **Call to action** — Directs the recipient to contact Veracode for the full report
 
-All figures are derived directly from the xlsx data — no invented or estimated values.
+All figures are derived directly from the xlsx data.
 
 ---
 

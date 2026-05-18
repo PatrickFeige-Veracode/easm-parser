@@ -11,8 +11,8 @@ import click
 from easm_report.exceptions import EasmReportError
 from easm_report.findings import detect_findings
 from easm_report.parser import read_easm
-from easm_report.renderer import render_report
-from easm_report.validator import validate_output_path
+from easm_report.renderer import render_report, render_teaser
+from easm_report.validator import validate_output_path, validate_teaser_output_path
 
 
 def find_file(directory: Path, pattern: str, label: str) -> Path:
@@ -37,7 +37,8 @@ def find_file(directory: Path, pattern: str, label: str) -> Path:
 @click.option("--input-dir", default="inputs", show_default=True, type=click.Path(), help="Folder containing xlsx files")
 @click.option("--output-dir", default="outputs", show_default=True, type=click.Path(), help="Folder for HTML output")
 @click.option("--verbose", is_flag=True, default=False)
-def main(customer: str, input_dir: str, output_dir: str, verbose: bool) -> None:
+@click.option("--teaser", is_flag=True, default=False, help="Generate a single-page teaser instead of the full report")
+def main(customer: str, input_dir: str, output_dir: str, verbose: bool, teaser: bool) -> None:
     logging.basicConfig(level=logging.DEBUG if verbose else logging.WARNING)
     try:
         base_dir = Path.cwd()
@@ -64,14 +65,21 @@ def main(customer: str, input_dir: str, output_dir: str, verbose: bool) -> None:
 
         report_data, dataframes = read_easm(easm_path, domain_path, customer, base_dir)
         findings = detect_findings(report_data, dataframes)
-        output_path = validate_output_path(customer, out_dir)
 
-        render_report(report_data, dataframes, findings, template_dir, output_path)
-
-        click.echo(f"\n✓  Report written: {output_path}")
-        click.echo(
-            f"   {report_data.total_apps} applications · {len(findings)} findings · {len(report_data.suppliers)} suppliers"
-        )
+        if teaser:
+            output_path = validate_teaser_output_path(customer, out_dir)
+            render_teaser(report_data, findings, template_dir, output_path)
+            click.echo(f"\n✓  Teaser written: {output_path}")
+            click.echo(
+                f"   {report_data.total_apps} applications · {len(report_data.suppliers)} suppliers · top {min(3, len(findings))} findings shown"
+            )
+        else:
+            output_path = validate_output_path(customer, out_dir)
+            render_report(report_data, dataframes, findings, template_dir, output_path)
+            click.echo(f"\n✓  Report written: {output_path}")
+            click.echo(
+                f"   {report_data.total_apps} applications · {len(findings)} findings · {len(report_data.suppliers)} suppliers"
+            )
 
     except EasmReportError as e:
         click.echo(f"\nError: {e}", err=True)

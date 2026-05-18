@@ -142,6 +142,73 @@ def _build_context(
     }
 
 
+def _build_teaser_context(
+    data: ReportData,
+    findings: list[Finding],
+) -> dict[str, Any]:
+    total = data.total_apps or 1
+    grade_pct = {g: round(100 * c / total, 1) for g, c in data.grade_counts.items()}
+    top_suppliers = sorted(data.suppliers, key=lambda s: -s.proximity)[:5]
+
+    sev_order = {"crit": 0, "d-lvl": 1, "med": 2, "": 3}
+    top_findings = sorted(findings, key=lambda f: sev_order.get(f.fc_class, 3))[:3]
+
+    seed_domain_0 = data.seed_domains[0] if data.seed_domains else data.customer.lower()
+
+    hsts_count = (
+        data.tag_counts.get("headerMissingHsts", 0)
+        + data.tag_counts.get("hstsMisconfig", 0)
+    )
+    internal_api_count = sum(1 for f in findings if f.category == "internal_api")
+    live_app_count = data.tag_counts.get("liveApp", 0)
+
+    return {
+        "customer": data.customer,
+        "scan_date": data.scan_date,
+        "seed_domain_0": seed_domain_0,
+        "seed_domain_count": len(data.seed_domains),
+        "total_apps": data.total_apps,
+        "unique_fqdns": data.unique_fqdns,
+        "bare_ip_count": data.bare_ip_count,
+        "total_cnames": data.total_cnames,
+        "grade_counts": data.grade_counts,
+        "grade_pct": grade_pct,
+        "clear_http_count": data.clear_http_count,
+        "hsts_count": hsts_count,
+        "internal_api_count": internal_api_count,
+        "live_app_count": live_app_count,
+        "top_suppliers": top_suppliers,
+        "top_findings": top_findings,
+        "total_findings": len(findings),
+        "total_suppliers": len(data.suppliers),
+        "crit_count": sum(1 for f in findings if f.fc_class == "crit"),
+        "high_count": sum(1 for f in findings if f.fc_class == "d-lvl"),
+        "med_count": sum(1 for f in findings if f.fc_class == "med"),
+    }
+
+
+def render_teaser(
+    data: ReportData,
+    findings: list[Finding],
+    template_dir: Path,
+    output_path: Path,
+) -> None:
+    from jinja2 import Environment, FileSystemLoader, StrictUndefined, select_autoescape
+
+    env = Environment(
+        loader=FileSystemLoader(str(template_dir)),
+        autoescape=select_autoescape(["html"]),
+        undefined=StrictUndefined,
+        trim_blocks=True,
+        lstrip_blocks=True,
+    )
+
+    ctx = _build_teaser_context(data, findings)
+    html = env.get_template("teaser.html").render(ctx)
+    validate_html(html)
+    output_path.write_text(html, encoding="utf-8")
+
+
 def render_report(
     data: ReportData,
     dataframes: dict[str, Any],

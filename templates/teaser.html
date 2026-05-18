@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Veracode EASM — {{ seed_domain_0 }} · Attack Surface Snapshot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:     #060C1A;
+  --navy-mid: #0B1228;
+  --navy-hi:  #131D38;
+  --red:      #E31837;
+  --red-dk:   #B81229;
+  --white:    #FFFFFF;
+  --g100:     #EEF2F8;
+  --g200:     #D4DCF0;
+  --g400:     #7B8DB5;
+  --g600:     #3D4F75;
+  --amber:    #F59E0B;
+  --green:    #00C389;
+  --blue-lt:  #2563EB;
+  --coral:    #F97316;
+  --sans:     'Inter', sans-serif;
+  --mono:     'JetBrains Mono', monospace;
+  --r:        8px;
+}
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+body { font-family:var(--sans); background:var(--g100); color:var(--navy); -webkit-font-smoothing:antialiased; }
+a { text-decoration:none; color:inherit; }
+code { font-family:var(--mono); font-size:.85em; }
+
+/* ── TOPBAR ── */
+.topbar {
+  position:sticky; top:0; z-index:200;
+  height:54px; background:var(--navy);
+  border-bottom:1px solid rgba(255,255,255,.06);
+  display:flex; align-items:center; padding:0 48px; gap:14px;
+}
+.topbar::after {
+  content:''; position:absolute; bottom:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg, var(--red) 0%, rgba(227,24,55,0) 60%);
+}
+.tb-logo { display:flex; align-items:center; gap:9px; }
+.tb-icon { width:28px; height:28px; flex-shrink:0; }
+.tb-word { color:#fff; font-size:16px; font-weight:800; letter-spacing:-.3px; text-transform:lowercase; }
+.tb-div  { width:1px; height:20px; background:rgba(255,255,255,.1); }
+.tb-sub  { color:var(--g400); font-size:10.5px; letter-spacing:.6px; text-transform:uppercase; font-weight:500; }
+.tb-right { margin-left:auto; display:flex; align-items:center; gap:10px; }
+.tb-scan { color:var(--g400); font-family:var(--mono); font-size:10.5px; }
+.tb-pill { font-size:9.5px; font-weight:700; padding:3px 10px; border-radius:4px; text-transform:uppercase; letter-spacing:.5px; }
+.tb-pill.passive { background:rgba(227,24,55,.15); border:1px solid rgba(227,24,55,.3); color:#FF6B81; }
+.tb-pill.teaser  { background:rgba(245,158,11,.15); border:1px solid rgba(245,158,11,.3); color:#FCD34D; }
+
+/* ── LAYOUT ── */
+.main { max-width:1100px; margin:0 auto; padding:0 0 80px; }
+
+/* ── SECTIONS ── */
+.sec { padding:52px 48px; }
+.sec-dark  { background:var(--navy); }
+.sec-mid   { background:var(--navy-mid); }
+.sec-white { background:#fff; }
+.sec-light { background:var(--g100); }
+.dots-d { background-image:radial-gradient(circle,rgba(255,255,255,.04) 1px,transparent 1px); background-size:28px 28px; }
+
+.eyebrow { font-family:var(--mono); font-size:.6rem; font-weight:700; text-transform:uppercase; letter-spacing:.2em; color:var(--red); margin-bottom:12px; }
+
+h1 { font-size:clamp(30px,4.2vw,52px); font-weight:900; letter-spacing:-.04em; line-height:1.02; }
+h2 { font-size:clamp(21px,2.6vw,32px); font-weight:800; letter-spacing:-.03em; line-height:1.08; margin-bottom:18px; }
+h3 { font-size:16px; font-weight:700; letter-spacing:-.02em; margin-bottom:10px; }
+p  { font-size:14px; line-height:1.7; }
+
+/* ── HERO ── */
+.hero { padding:60px 48px 52px; position:relative; overflow:hidden; background:var(--navy); }
+.hero-orb1 { position:absolute; top:-100px; right:-80px; width:500px; height:500px; border-radius:50%; background:radial-gradient(circle, rgba(0,195,137,.05) 0%, transparent 70%); pointer-events:none; }
+.hero-orb2 { position:absolute; bottom:-80px; left:-60px; width:300px; height:300px; border-radius:50%; background:rgba(227,24,55,.04); pointer-events:none; }
+.hero-tag { display:inline-flex; align-items:center; gap:6px; background:rgba(245,158,11,.12); border:1px solid rgba(245,158,11,.25); color:#FCD34D; font-size:10px; font-weight:700; letter-spacing:.6px; text-transform:uppercase; padding:4px 12px; border-radius:4px; margin-bottom:20px; }
+.hero h1 { color:#fff; margin-bottom:12px; }
+.hero-sub { font-size:15px; color:rgba(255,255,255,.5); max-width:600px; line-height:1.65; margin-bottom:40px; font-weight:400; }
+.hero-stats { display:flex; gap:48px; padding-top:32px; border-top:1px solid rgba(255,255,255,.07); flex-wrap:wrap; }
+.hs-n { font-size:40px; font-weight:900; letter-spacing:-.05em; color:#fff; line-height:1; margin-bottom:6px; }
+.hs-n.red { color:var(--red); }
+.hs-n.amber { color:var(--amber); }
+.hs-l { font-family:var(--mono); font-size:.56rem; text-transform:uppercase; letter-spacing:.16em; color:rgba(255,255,255,.3); }
+
+/* ── STAT GRID ── */
+.stat-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(155px,1fr)); gap:10px; margin-bottom:28px; }
+.stat-card { background:#fff; border:1px solid var(--g200); border-radius:var(--r); padding:18px 16px; position:relative; overflow:hidden; }
+.stat-card::before { content:''; position:absolute; top:0;left:0;right:0;height:2px; background:var(--red); opacity:0; }
+.stat-card.hi::before { opacity:1; }
+.stat-card.hi { border-color:rgba(227,24,55,.2); background:#FFF3F5; }
+.stat-card.amber-hi { border-color:rgba(245,158,11,.2); background:#FFFBEB; }
+.stat-card.amber-hi::before { opacity:1; background:var(--amber); }
+.sc-val { font-size:32px; font-weight:900; letter-spacing:-.05em; line-height:1; margin-bottom:5px; color:var(--navy); }
+.sc-val.red { color:var(--red); }
+.sc-val.amber { color:var(--amber); }
+.sc-lab { font-size:11px; color:var(--g600); font-weight:600; line-height:1.4; text-transform:uppercase; letter-spacing:.02em; }
+
+/* ── TABLE ── */
+.tbl-wrap { background:#fff; border:1px solid var(--g200); border-radius:var(--r); overflow:hidden; }
+table { width:100%; border-collapse:collapse; font-size:12.5px; }
+thead { background:var(--navy); }
+thead th { color:var(--g400); font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; padding:10px 14px; text-align:left; }
+tbody tr { border-bottom:1px solid var(--g100); }
+tbody tr:last-child { border-bottom:none; }
+tbody td { padding:10px 14px; vertical-align:top; line-height:1.5; color:var(--navy); }
+.mn { font-family:var(--mono); font-size:11px; color:#1E3A8A; }
+
+/* ── BADGES ── */
+.b { display:inline-block; font-size:9.5px; font-weight:700; padding:2px 8px; border-radius:3px; text-transform:uppercase; letter-spacing:.4px; }
+.b-red   { background:rgba(227,24,55,.09);   color:#B81229; }
+.b-amber { background:rgba(245,158,11,.11);  color:#92680A; }
+.b-blue  { background:rgba(37,99,235,.09);   color:#1D4ED8; }
+.b-grey  { background:rgba(123,141,181,.12); color:#3D4F75; }
+.risk-A { display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700;background:rgba(245,158,11,.12);color:#92680A; }
+.risk-B { display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700;background:rgba(37,99,235,.1);color:#1D4ED8; }
+.risk-C { display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700;background:rgba(249,115,22,.15);color:#7C2D12; }
+.risk-D { display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700;background:rgba(227,24,55,.1);color:#B81229; }
+.risk-F { display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700;background:rgba(227,24,55,.2);color:#7F0012; }
+
+/* ── PROGRESS ── */
+.pr-row { display:flex; align-items:center; gap:12px; margin-bottom:10px; font-size:12.5px; }
+.pr-lab { width:180px; flex-shrink:0; font-size:12px; font-weight:600; color:var(--navy); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.pr-bar { flex:1; background:var(--g200); border-radius:3px; height:7px; overflow:hidden; }
+.pr-fill { height:100%; border-radius:3px; background:var(--red); }
+.pr-fill.b { background:var(--blue-lt); }
+.pr-fill.a { background:var(--amber); }
+.pr-val { width:50px; text-align:right; color:var(--g600); font-family:var(--mono); font-size:11px; font-weight:600; }
+
+/* ── FINDING CARD ── */
+.fc { background:#fff; border:1px solid var(--g200); border-radius:var(--r); padding:18px 20px; margin-bottom:10px; border-left:3px solid var(--g200); }
+.fc.crit  { border-left-color:var(--red); }
+.fc.d-lvl { border-left-color:var(--amber); }
+.fc.med   { border-left-color:var(--blue-lt); }
+.fc-hd { display:flex; align-items:flex-start; gap:10px; margin-bottom:8px; }
+.fc-title { font-size:13.5px; font-weight:700; flex:1; }
+.fc-body { font-size:12.5px; color:var(--g600); line-height:1.65; }
+.fc-meta { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+
+/* ── SECTION TITLE ── */
+.sec-title { font-size:13.5px; font-weight:700; color:var(--navy); margin-bottom:14px; display:flex; align-items:center; gap:8px; text-transform:uppercase; letter-spacing:.04em; }
+.sec-title::after { content:''; flex:1; height:1px; background:var(--g200); margin-left:6px; }
+.sec-title-w { font-size:13.5px; font-weight:700; color:rgba(255,255,255,.4); margin-bottom:14px; display:flex; align-items:center; gap:8px; text-transform:uppercase; letter-spacing:.04em; }
+.sec-title-w::after { content:''; flex:1; height:1px; background:rgba(255,255,255,.07); margin-left:6px; }
+
+/* ── GRADE BREAKDOWN ── */
+.grade-row { display:flex; align-items:center; gap:12px; margin-bottom:9px; }
+.grade-label { width:32px; flex-shrink:0; }
+.grade-bar { flex:1; background:var(--g200); border-radius:3px; height:10px; overflow:hidden; }
+.grade-fill { height:100%; border-radius:3px; }
+.gf-A { background:var(--amber); }
+.gf-B { background:var(--blue-lt); }
+.gf-C { background:var(--coral); }
+.gf-D { background:var(--red); opacity:.75; }
+.gf-F { background:var(--red); }
+.grade-count { width:50px; text-align:right; font-family:var(--mono); font-size:11px; color:var(--g600); font-weight:600; }
+
+/* ── CTA ── */
+.cta-section {
+  background:var(--navy);
+  padding:56px 48px;
+  position:relative;
+  overflow:hidden;
+}
+.cta-orb { position:absolute; bottom:-80px; right:-60px; width:400px; height:400px; border-radius:50%; background:radial-gradient(circle,rgba(227,24,55,.07) 0%,transparent 70%); pointer-events:none; }
+.cta-inner { max-width:640px; position:relative; }
+.cta-tag { display:inline-flex; align-items:center; gap:6px; background:rgba(0,195,137,.1); border:1px solid rgba(0,195,137,.2); color:var(--green); font-size:10px; font-weight:700; letter-spacing:.6px; text-transform:uppercase; padding:4px 12px; border-radius:4px; margin-bottom:20px; }
+.cta-section h2 { color:#fff; margin-bottom:14px; }
+.cta-section p { color:rgba(255,255,255,.5); font-size:15px; line-height:1.7; margin-bottom:28px; }
+.cta-btn { display:inline-flex; align-items:center; gap:8px; background:var(--red); color:#fff; font-size:13px; font-weight:700; padding:12px 24px; border-radius:6px; letter-spacing:.02em; }
+.cta-btn:hover { background:var(--red-dk); }
+.cta-divider { display:flex; gap:32px; margin-top:36px; padding-top:32px; border-top:1px solid rgba(255,255,255,.07); flex-wrap:wrap; }
+.cta-item { display:flex; align-items:center; gap:10px; }
+.cta-item-dot { width:6px; height:6px; border-radius:50%; background:var(--green); flex-shrink:0; }
+.cta-item-text { font-size:12px; color:rgba(255,255,255,.4); font-weight:500; }
+
+/* ── FOOTER ── */
+.foot { background:#fff; border-top:1px solid var(--g200); padding:12px 48px; display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--g600); font-weight:500; }
+.foot a { color:var(--red); }
+
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--g200); border-radius:3px; }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="tb-logo">
+    <svg class="tb-icon" viewBox="0 0 30 30" fill="none">
+      <path d="M15 2L27 8.5V21.5L15 28L3 21.5V8.5L15 2Z" fill="#E31837"/>
+      <path d="M10 14.5L13.5 19L20 11" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="tb-word">veracode</span>
+  </div>
+  <div class="tb-div"></div>
+  <span class="tb-sub">External Attack Surface Management</span>
+  <div class="tb-right">
+    <span class="tb-pill teaser">Snapshot</span>
+    <span class="tb-pill passive">Passive Discovery</span>
+    <span class="tb-scan">{{ seed_domain_0 }} · {{ scan_date }}</span>
+  </div>
+</header>
+
+<div class="main">
+
+<!-- HERO -->
+<section class="hero dots-d">
+  <div class="hero-orb1"></div>
+  <div class="hero-orb2"></div>
+  <div class="hero-tag">Attack Surface Snapshot</div>
+  <h1 style="color:#fff;">{{ customer }}<br>External Attack Surface</h1>
+  <p class="hero-sub">
+    Veracode EASM passive discovery · {{ scan_date }} · {{ seed_domain_count }} seed domain{% if seed_domain_count != 1 %}s{% endif %} · No agents or integrations required
+  </p>
+  <div class="hero-stats">
+    <div>
+      <div class="hs-n">{{ total_apps }}</div>
+      <div class="hs-l">Applications</div>
+    </div>
+    <div>
+      <div class="hs-n">{{ unique_fqdns }}</div>
+      <div class="hs-l">Unique FQDNs</div>
+    </div>
+    <div>
+      <div class="hs-n">{{ total_cnames }}</div>
+      <div class="hs-l">CNAME records</div>
+    </div>
+    <div>
+      <div class="hs-n{% if hsts_count > 0 %} red{% endif %}">{{ hsts_count }}</div>
+      <div class="hs-l">HSTS issues</div>
+    </div>
+    <div>
+      <div class="hs-n{% if internal_api_count > 0 %} red{% endif %}">{{ internal_api_count }}</div>
+      <div class="hs-l">internalApi tagged</div>
+    </div>
+  </div>
+</section>
+
+<!-- SURFACE STATS -->
+<section class="sec sec-white">
+  <div class="eyebrow">Attack Surface</div>
+  <h2>What was discovered</h2>
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="sc-val">{{ total_cnames }}</div>
+      <div class="sc-lab">CNAME records</div>
+    </div>
+    <div class="stat-card{% if bare_ip_count > 0 %} amber-hi{% endif %}">
+      <div class="sc-val{% if bare_ip_count > 0 %} amber{% endif %}">{{ bare_ip_count }}</div>
+      <div class="sc-lab">Bare IP addresses</div>
+    </div>
+    <div class="stat-card{% if clear_http_count > 0 %} hi{% endif %}">
+      <div class="sc-val{% if clear_http_count > 0 %} red{% endif %}">{{ clear_http_count }}</div>
+      <div class="sc-lab">Clear HTTP (unencrypted)</div>
+    </div>
+    <div class="stat-card{% if live_app_count > 0 %} hi{% endif %}">
+      <div class="sc-val{% if live_app_count > 0 %} red{% endif %}">{{ live_app_count }}</div>
+      <div class="sc-lab">Applications live &amp; reachable</div>
+    </div>
+  </div>
+
+  <!-- GRADE DISTRIBUTION -->
+  <div class="sec-title" style="margin-top:8px;">Risk grade distribution</div>
+  {% for grade in ['F', 'D', 'C', 'B', 'A'] %}
+  {% if grade_counts.get(grade, 0) > 0 %}
+  <div class="grade-row">
+    <div class="grade-label"><span class="risk-{{ grade }}">{{ grade }}</span></div>
+    <div class="grade-bar">
+      <div class="grade-fill gf-{{ grade }}" style="width:{{ grade_pct.get(grade, 0) }}%"></div>
+    </div>
+    <div class="grade-count">{{ grade_counts.get(grade, 0) }}</div>
+  </div>
+  {% endif %}
+  {% endfor %}
+</section>
+
+<!-- TOP FINDINGS -->
+{% if top_findings %}
+<section class="sec sec-white">
+  <div class="eyebrow">Findings · Top priority items</div>
+  <h2>Sample findings from this scan.</h2>
+  <p style="color:var(--g600); margin-bottom:28px; font-size:13.5px;">
+    Showing {{ top_findings | length }} of {{ total_findings }} findings detected.
+    The full report covers all findings with remediation guidance.
+  </p>
+  {% for f in top_findings %}
+  <div class="fc {{ f.fc_class }}">
+    <div class="fc-hd">
+      <div class="fc-title">{{ loop.index }} — {{ f.title }}</div>
+      <span class="risk-{{ f.grade }}">{{ f.grade }}</span>
+    </div>
+    <div class="fc-body">{{ f.body }}</div>
+    <div class="fc-meta">
+      {% for tag in f.tags[:4] %}<span class="b b-grey">{{ tag }}</span>{% endfor %}
+      <span class="b b-navy">{{ f.category }}</span>
+    </div>
+  </div>
+  {% endfor %}
+</section>
+{% endif %}
+
+<!-- SUPPLY CHAIN -->
+{% if top_suppliers %}
+<section class="sec sec-white">
+  <div class="eyebrow">Supply Chain</div>
+  <h2>Top suppliers by proximity</h2>
+  <p style="color:var(--g600); margin-bottom:28px; font-size:13.5px;">
+    {{ total_suppliers }} third-party suppliers detected across {{ seed_domain_count }} seed domain{% if seed_domain_count != 1 %}s{% endif %}.
+    Proximity is the share of assets connected to each supplier.
+  </p>
+  {% for s in top_suppliers %}
+  <div class="pr-row">
+    <div class="pr-lab">{{ s.name }}</div>
+    <div class="pr-bar">
+      <div class="pr-fill{% if s.proximity > 50 %} a{% endif %}" style="width:{{ [s.proximity, 100] | min }}%"></div>
+    </div>
+    <div class="pr-val">{{ "%.0f"|format(s.proximity) }}%</div>
+  </div>
+  {% endfor %}
+  {% if total_suppliers > 5 %}
+  <p style="color:var(--g400); font-size:12px; margin-top:16px;">
+    + {{ total_suppliers - 5 }} additional suppliers in the full report
+  </p>
+  {% endif %}
+</section>
+{% endif %}
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-orb"></div>
+  <div class="cta-inner">
+    <div class="cta-tag">Full Report Available</div>
+    <h2>Ready to see the complete picture?</h2>
+    <p>
+      This snapshot covers the surface-level findings from your Veracode EASM scan.
+      The full report delivers three tailored views — for your CISO, Security Engineering, and GRC teams —
+      with complete findings, asset inventory, CNAME analysis, supplier risk detail, and a prioritised remediation plan.
+    </p>
+    <a class="cta-btn" href="https://www.veracode.com/contact">
+      Contact Veracode for the full report
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 8h10M9 4l4 4-4 4"/>
+      </svg>
+    </a>
+    <div class="cta-divider">
+      <div class="cta-item">
+        <div class="cta-item-dot"></div>
+        <div class="cta-item-text">CISO Executive Summary</div>
+      </div>
+      <div class="cta-item">
+        <div class="cta-item-dot"></div>
+        <div class="cta-item-text">Security Engineer Asset Detail</div>
+      </div>
+      <div class="cta-item">
+        <div class="cta-item-dot"></div>
+        <div class="cta-item-text">GRC Supplier Register</div>
+      </div>
+      <div class="cta-item">
+        <div class="cta-item-dot"></div>
+        <div class="cta-item-text">Prioritised Remediation Plan</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /main -->
+
+<footer class="foot">
+  <span>Veracode External Attack Surface Management · <strong>{{ seed_domain_0 }}</strong> · Scan {{ scan_date }} · Passive discovery only</span>
+  <span><a href="https://www.veracode.com">veracode.com</a></span>
+</footer>
+
+</body>
+</html>

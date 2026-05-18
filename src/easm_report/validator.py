@@ -42,3 +42,10 @@ def validate_output_path(customer: str, output_dir: Path) -> Path:
     if not safe_name:
         raise ValueError("Customer name produced empty slug")
     return output_dir / f"{safe_name}-veracode-easm-report.html"
+
+
+def validate_teaser_output_path(customer: str, output_dir: Path) -> Path:
+    safe_name = re.sub(r"[^a-zA-Z0-9\-_]", "-", customer.strip())[:50].lower()
+    if not safe_name:
+        raise ValueError("Customer name produced empty slug")
+    return output_dir / f"{safe_name}-veracode-easm-teaser.html"

@@ -50,8 +50,31 @@ If the wrong files are present it tells you clearly. It never silently uses the 
 --customer     Customer name — used in report header and output filename (required)
 --input-dir    Override the inputs folder (default: ./inputs)
 --output-dir   Override the outputs folder (default: ./outputs)
+--teaser       Generate a single-page snapshot report instead of the full report
 --verbose      Debug logging
 ```
+
+---
+
+## Snapshot report (teaser)
+
+The `--teaser` flag generates a single-page snapshot instead of the full three-view report. Use it to share a high-level preview of findings with a prospect or stakeholder before delivering the full report.
+
+```bash
+easm-report --customer "Acme Corp" --teaser
+
+# Output: outputs/acme-corp-veracode-easm-teaser.html
+```
+
+The snapshot includes:
+- **Hero stats** — Applications, Unique FQDNs, CNAME records, HSTS issues, internalApi tagged
+- **Attack surface breakdown** — Bare IPs, Clear HTTP, Live & reachable application count
+- **Grade distribution** — Risk grade breakdown across all discovered assets
+- **Top 3 findings** — The highest-severity findings from the scan, in full report format
+- **Top 5 suppliers** — Third-party supply chain exposure by proximity
+- **Call to action** — Directs the recipient to contact Veracode for the full report
+
+All figures are derived directly from the xlsx data — no invented or estimated values.
 
 ---
 

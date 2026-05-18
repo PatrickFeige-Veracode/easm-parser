@@ -1,4 +1,5 @@
-inputs/
+inputs/*
+!inputs/.gitkeep
 outputs/
 CLAUDE.md
 .claude/

@@ -45,6 +45,13 @@ def main(customer: str, input_dir: str, output_dir: str, verbose: bool) -> None:
         out_dir = Path(output_dir)
         out_dir.mkdir(parents=True, exist_ok=True)
 
+        if not in_dir.is_dir():
+            raise FileNotFoundError(
+                f"Input directory not found: {in_dir.resolve()}\n"
+                f"Create it and drop your xlsx files in:\n"
+                f"  mkdir -p {in_dir} && cd {in_dir}"
+            )
+
         easm_path = find_file(in_dir, "*easm-extract*", "EASM extract")
         domain_path = find_file(in_dir, "*domain-things*", "domain-things")
 

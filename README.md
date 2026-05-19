@@ -180,6 +180,24 @@ Drop them into `inputs/` before running. Both are gitignored — customer data n
 
 ---
 
+## How it works
+
+```
+xlsx files → parser.py → findings.py → renderer.py → validator.py → HTML/PDF
+```
+
+**`parser.py`** reads the `application`, `supplyChain*`, and `domain-things` sheets. Every number in the report — apps, grade distribution, tag counts, CNAME count, clear HTTP — comes straight from the xlsx. Seed domains are pulled from the `relatedDomain` column, filtered to entries with ≥2 unique app names to drop the single-app duplicates Veracode auto-appends.
+
+**`findings.py`** runs 8 detection rules: cleartext HTTP, external CNAME chains, resolvable staging/dev/sandbox environments, externally reachable `internalApi`-tagged assets, missing HSTS on auth endpoints, bare IPs on non-standard ports, certificate hostname mismatches, and mixed CA usage. All findings are sorted by `attacker_score()` — a weighted function that surfaces the most actionable issues first. Cleartext HTTP and online status score highest; forbidden-only assets and supplier findings score lowest.
+
+**`renderer.py`** pre-computes everything before passing it to Jinja2, so templates stay as dumb as possible — loops and conditionals only. The snapshot's spotlight section is built by `_researcher_pick()`, which takes the top-scored finding and writes the text from its actual field values. No hardcoding; it adapts to whatever dataset you feed it.
+
+**`validator.py`** checks the rendered HTML before anything hits disk. Severity labels, regulatory framework names, invented risk language, or bleed from a previous customer run all raise a `ValidationError` and abort the write.
+
+**Templates** — `base.html` is the shell (CSS, JS, navigation), with `ciso.html`, `se.html`, and `grc.html` included into it. `teaser.html` is a self-contained single-page snapshot.
+
+---
+
 ## LLM tip
 
 Once the report is generated, load the HTML into an LLM (Claude, ChatGPT, etc.) for a second pass — pattern analysis across findings, remediation prioritisation, or an executive narrative layer that goes beyond what the static report surfaces on its own.

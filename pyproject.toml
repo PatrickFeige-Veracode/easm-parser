@@ -14,6 +14,9 @@ dependencies = [
     "markupsafe==2.1.5",
 ]
 
+[project.optional-dependencies]
+pdf = ["weasyprint>=62.0"]
+
 [project.scripts]
 easm-report = "easm_report.cli:main"
 

@@ -55,8 +55,37 @@ If the wrong files are present it tells you clearly. It never silently uses the 
 --input-dir    Override the inputs folder (default: ./inputs)
 --output-dir   Override the outputs folder (default: ./outputs)
 --teaser       Generate a single-page snapshot report instead of the full report
+--pdf          Also generate a PDF version of the report (requires WeasyPrint)
 --verbose      Debug logging
 ```
+
+---
+
+## PDF output
+
+Add `--pdf` to any command to produce a PDF alongside the HTML:
+
+```bash
+easm-report --customer "Acme Corp" --pdf
+easm-report --customer "Acme Corp" --teaser --pdf
+```
+
+PDF output requires WeasyPrint. Install it once via pipx:
+
+```bash
+# macOS — install system dependency first
+brew install pango
+
+pipx inject easm-report weasyprint
+```
+
+```bash
+# Linux (Debian/Ubuntu)
+sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b
+pipx inject easm-report weasyprint
+```
+
+PDFs are written to the same output folder as the HTML, e.g. `outputs/acme-corp-veracode-easm-report.pdf`.
 
 ---
 
@@ -71,11 +100,11 @@ easm-report --customer "Acme Corp" --teaser
 ```
 
 The snapshot includes:
-- **Hero stats** — Applications, Unique FQDNs, CNAME records, HSTS issues, internalApi tagged
-- **Attack surface breakdown** — Bare IPs, Clear HTTP, Live & reachable application count
+- **Hero stats** — Applications, Unique FQDNs, Suppliers, CNAME records, internalApi tagged
+- **Attack surface stat grid** — Applications, FQDNs, named suppliers, CNAME records, third-party CNAME targets, internalApi assets, bare IPs, HSTS issues, grade A/B/D/F counts — all highlighted red or amber where applicable
 - **Grade distribution** — Risk grade breakdown across all discovered assets
 - **Top 3 findings** — The highest-severity findings from the scan, in full report format
-- **Top 5 suppliers** — Third-party supply chain exposure by proximity
+- **Top 5 suppliers** — Third-party supply chain exposure by proximity, with PII/PCI/AI classification counts
 - **Call to action** — Directs the recipient to contact Veracode for the full report
 
 All figures are derived directly from the xlsx data.

@@ -11,6 +11,7 @@ import click
 from easm_report.exceptions import EasmReportError
 from easm_report.findings import detect_findings
 from easm_report.parser import read_easm
+from easm_report.pdf_writer import generate_pdf
 from easm_report.renderer import render_report, render_teaser
 from easm_report.validator import validate_output_path, validate_teaser_output_path
 
@@ -38,7 +39,8 @@ def find_file(directory: Path, pattern: str, label: str) -> Path:
 @click.option("--output-dir", default="outputs", show_default=True, type=click.Path(), help="Folder for HTML output")
 @click.option("--verbose", is_flag=True, default=False)
 @click.option("--teaser", is_flag=True, default=False, help="Generate a single-page teaser instead of the full report")
-def main(customer: str, input_dir: str, output_dir: str, verbose: bool, teaser: bool) -> None:
+@click.option("--pdf", is_flag=True, default=False, help="Also generate a PDF version of the report (requires weasyprint)")
+def main(customer: str, input_dir: str, output_dir: str, verbose: bool, teaser: bool, pdf: bool) -> None:
     logging.basicConfig(level=logging.DEBUG if verbose else logging.WARNING)
     try:
         base_dir = Path.cwd()
@@ -80,6 +82,10 @@ def main(customer: str, input_dir: str, output_dir: str, verbose: bool, teaser: 
             click.echo(
                 f"   {report_data.total_apps} applications · {len(findings)} findings · {len(report_data.suppliers)} suppliers"
             )
+
+        if pdf:
+            pdf_path = generate_pdf(output_path, out_dir, customer, teaser=teaser)
+            click.echo(f"✓  PDF written:    {pdf_path}")
 
     except EasmReportError as e:
         click.echo(f"\nError: {e}", err=True)

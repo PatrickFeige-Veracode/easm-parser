@@ -226,12 +226,12 @@ tbody td { padding:10px 14px; vertical-align:top; line-height:1.5; color:var(--n
       <div class="hs-l">Unique FQDNs</div>
     </div>
     <div>
-      <div class="hs-n">{{ total_cnames }}</div>
-      <div class="hs-l">CNAME records</div>
+      <div class="hs-n">{{ total_suppliers }}</div>
+      <div class="hs-l">Suppliers</div>
     </div>
     <div>
-      <div class="hs-n{% if hsts_count > 0 %} red{% endif %}">{{ hsts_count }}</div>
-      <div class="hs-l">HSTS issues</div>
+      <div class="hs-n">{{ total_cnames }}</div>
+      <div class="hs-l">CNAME records</div>
     </div>
     <div>
       <div class="hs-n{% if internal_api_count > 0 %} red{% endif %}">{{ internal_api_count }}</div>
@@ -242,29 +242,68 @@ tbody td { padding:10px 14px; vertical-align:top; line-height:1.5; color:var(--n
 
 <!-- SURFACE STATS -->
 <section class="sec sec-white">
-  <div class="eyebrow">Attack Surface</div>
-  <h2>What was discovered</h2>
-  <div class="stat-grid">
+  <div class="eyebrow">Attack Surface · Risk Posture</div>
+  <h2>{{ total_apps }} applications across {{ seed_domain_count }} seed domain{% if seed_domain_count != 1 %}s{% endif %}.</h2>
+
+  <div class="stat-grid" style="grid-template-columns:repeat(auto-fill,minmax(140px,1fr));margin-bottom:28px;">
+    <div class="stat-card">
+      <div class="sc-val">{{ total_apps }}</div>
+      <div class="sc-lab">Applications discovered</div>
+    </div>
+    <div class="stat-card">
+      <div class="sc-val">{{ unique_fqdns }}</div>
+      <div class="sc-lab">Unique FQDNs</div>
+    </div>
+    <div class="stat-card">
+      <div class="sc-val">{{ total_suppliers }}</div>
+      <div class="sc-lab">Named suppliers</div>
+    </div>
     <div class="stat-card">
       <div class="sc-val">{{ total_cnames }}</div>
       <div class="sc-lab">CNAME records</div>
     </div>
-    <div class="stat-card{% if bare_ip_count > 0 %} amber-hi{% endif %}">
-      <div class="sc-val{% if bare_ip_count > 0 %} amber{% endif %}">{{ bare_ip_count }}</div>
+    {% if cname_finding_count > 0 %}
+    <div class="stat-card hi">
+      <div class="sc-val red">{{ cname_finding_count }}</div>
+      <div class="sc-lab">Third-party CNAME targets</div>
+    </div>
+    {% endif %}
+    {% if internal_api_count > 0 %}
+    <div class="stat-card hi">
+      <div class="sc-val red">{{ internal_api_count }}</div>
+      <div class="sc-lab">internalApi-tagged assets</div>
+    </div>
+    {% endif %}
+    {% if bare_ip_count > 0 %}
+    <div class="stat-card amber-hi">
+      <div class="sc-val amber">{{ bare_ip_count }}</div>
       <div class="sc-lab">Bare IP addresses</div>
     </div>
-    <div class="stat-card{% if clear_http_count > 0 %} hi{% endif %}">
-      <div class="sc-val{% if clear_http_count > 0 %} red{% endif %}">{{ clear_http_count }}</div>
+    {% endif %}
+    {% if hsts_count > 0 %}
+    <div class="stat-card hi">
+      <div class="sc-val red">{{ hsts_count }}</div>
+      <div class="sc-lab">HSTS issues</div>
+    </div>
+    {% endif %}
+    {% if clear_http_count > 0 %}
+    <div class="stat-card hi">
+      <div class="sc-val red">{{ clear_http_count }}</div>
       <div class="sc-lab">Clear HTTP (unencrypted)</div>
     </div>
-    <div class="stat-card{% if live_app_count > 0 %} hi{% endif %}">
-      <div class="sc-val{% if live_app_count > 0 %} red{% endif %}">{{ live_app_count }}</div>
-      <div class="sc-lab">Applications live &amp; reachable</div>
+    {% endif %}
+    {% for grade in ['F', 'D', 'B', 'A'] %}
+    {% if grade_counts.get(grade, 0) > 0 %}
+    <div class="stat-card{% if grade in ['F','D'] %} hi{% endif %}">
+      <div class="sc-val{% if grade in ['F','D'] %} red{% endif %}">{{ grade_counts[grade] }}</div>
+      <div class="sc-lab">Grade {{ grade }} applications</div>
     </div>
+    {% endif %}
+    {% endfor %}
   </div>
 
-  <!-- GRADE DISTRIBUTION -->
-  <div class="sec-title" style="margin-top:8px;">Risk grade distribution</div>
+  <!-- GRADE DISTRIBUTION BAR CHART -->
+  <div class="sec-title">Risk grade distribution</div>
   {% for grade in ['F', 'D', 'C', 'B', 'A'] %}
   {% if grade_counts.get(grade, 0) > 0 %}
   <div class="grade-row">
@@ -306,12 +345,19 @@ tbody td { padding:10px 14px; vertical-align:top; line-height:1.5; color:var(--n
 <!-- SUPPLY CHAIN -->
 {% if top_suppliers %}
 <section class="sec sec-white">
-  <div class="eyebrow">Supply Chain</div>
-  <h2>Top suppliers by proximity</h2>
-  <p style="color:var(--g600); margin-bottom:28px; font-size:13.5px;">
+  <div class="eyebrow">Supply Chain · {{ total_suppliers }} suppliers detected</div>
+  <h2>Top suppliers by proximity score.</h2>
+  <p style="color:var(--g600); margin-bottom:16px; font-size:13.5px;">
     {{ total_suppliers }} third-party suppliers detected across {{ seed_domain_count }} seed domain{% if seed_domain_count != 1 %}s{% endif %}.
     Proximity is the share of assets connected to each supplier.
   </p>
+  {% if pii_supplier_count or pci_supplier_count or ai_supplier_count %}
+  <div style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:20px;">
+    {% if pii_supplier_count %}<span class="b b-red">{{ pii_supplier_count }} PII-classified</span>{% endif %}
+    {% if pci_supplier_count %}<span class="b b-amber">{{ pci_supplier_count }} PCI-classified</span>{% endif %}
+    {% if ai_supplier_count %}<span class="b b-blue">{{ ai_supplier_count }} AI-classified</span>{% endif %}
+  </div>
+  {% endif %}
   {% for s in top_suppliers %}
   <div class="pr-row">
     <div class="pr-lab">{{ s.name }}</div>

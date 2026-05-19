@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import sys
 from pathlib import Path
 
@@ -45,7 +46,8 @@ def main(customer: str, input_dir: str, output_dir: str, verbose: bool, teaser: 
     try:
         base_dir = Path.cwd()
         in_dir = Path(input_dir)
-        out_dir = Path(output_dir)
+        safe_slug = re.sub(r"[^a-zA-Z0-9\-_]", "-", customer.strip())[:50].lower()
+        out_dir = Path(output_dir) / safe_slug
         out_dir.mkdir(parents=True, exist_ok=True)
 
         if not in_dir.is_dir():

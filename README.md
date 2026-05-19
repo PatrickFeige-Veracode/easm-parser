@@ -77,18 +77,18 @@ Drop your two xlsx exports into `inputs/`, then run:
 
 ```bash
 easm-report --customer "Acme Corp"
-# → outputs/acme-corp-veracode-easm-report.html
+# → outputs/acme-corp/acme-corp-veracode-easm-report.html
 
 easm-report --customer "Acme Corp" --pdf
-# → outputs/acme-corp-veracode-easm-report.html
-# → outputs/Acme_Corp-veracode-easm-report.pdf
+# → outputs/acme-corp/acme-corp-veracode-easm-report.html
+# → outputs/acme-corp/acme-corp-veracode-easm-report.pdf
 
 easm-report --customer "Acme Corp" --teaser
-# → outputs/acme-corp-veracode-easm-teaser.html
+# → outputs/acme-corp/acme-corp-veracode-easm-teaser.html
 
 easm-report --customer "Acme Corp" --teaser --pdf
-# → outputs/acme-corp-veracode-easm-teaser.html
-# → outputs/Acme_Corp-veracode-easm-teaser.pdf
+# → outputs/acme-corp/acme-corp-veracode-easm-teaser.html
+# → outputs/acme-corp/acme-corp-veracode-easm-teaser.pdf
 ```
 
 The tool auto-detects the xlsx files by filename pattern:
@@ -102,9 +102,9 @@ If multiple matches or no match is found, it tells you clearly. It never silentl
 ## Options
 
 ```
---customer     Customer name — used in report header and output filename  [required]
+--customer     Customer name — used in report header and output folder  [required]
 --input-dir    Folder containing xlsx files  [default: inputs]
---output-dir   Folder for output files  [default: outputs]
+--output-dir   Parent folder for output; a subfolder named after the customer is created inside  [default: outputs]
 --teaser       Generate a single-page snapshot instead of the full report
 --pdf          Also generate a PDF (requires WeasyPrint — see Install)
 --verbose      Debug logging

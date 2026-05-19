@@ -8,6 +8,7 @@ from typing import Any
 
 import pandas as pd
 
+from easm_report.findings import attacker_score
 from easm_report.models import Finding, ReportData
 from easm_report.validator import validate_html
 
@@ -142,6 +143,80 @@ def _build_context(
     }
 
 
+def _build_hook(f: Finding) -> str:
+    port_str = f" on port {f.port}" if f.port else ""
+    if "clearHttp" in f.tags:
+        return f"{f.asset} serves unencrypted HTTP{port_str} — traffic is transmitted in cleartext."
+    if f.status == "online" and "internalApi" in f.tags:
+        cname_note = f", routed via {f.cname}" if f.cname else ""
+        return f"{f.asset} is an internalApi-tagged endpoint with status online{port_str}{cname_note}."
+    if f.status == "online" and f.category == "staging":
+        env = next(
+            (w for w in ("sandbox", "dev", "staging", "uat", "test", "admin", "pilot")
+             if w in f.asset.lower()), "staging"
+        )
+        return f"{f.asset} is a resolvable {env} environment with status online{port_str}."
+    if f.category == "cname" and f.status == "online":
+        return (
+            f"{f.asset} resolves via CNAME to {f.cname} "
+            f"and is actively serving on port {f.port}."
+        )
+    if f.category == "cname":
+        return f"{f.asset} resolves via CNAME to {f.cname}, an external third-party host."
+    if f.category == "hygiene" and "hostnameCertificateMismatch" in f.tags:
+        return f"{f.asset} has a hostname/certificate mismatch{port_str}, status {f.status}."
+    return f.title
+
+
+def _build_researcher_note(f: Finding) -> str:
+    if "clearHttp" in f.tags:
+        return (
+            f"{f.asset} transmits over port {f.port} without TLS — "
+            f"form submissions and session tokens on this endpoint are visible on the network path."
+        )
+    if f.status == "online" and "internalApi" in f.tags:
+        cname_note = f" via {f.cname}" if f.cname else ""
+        return (
+            f"{f.asset} returns an active response{cname_note} — "
+            f"the confirmed online status means path and header enumeration requires no access bypass."
+        )
+    if f.status == "online" and f.category == "staging":
+        return (
+            f"{f.asset} is live and responding on port {f.port} — "
+            f"staging environments routinely carry reduced access controls and data that mirrors production."
+        )
+    if f.category == "cname" and f.status == "online":
+        return (
+            f"{f.asset} is live and responding through {f.cname} on port {f.port} — "
+            f"an external host outside the seed domains is in the serving path for this active endpoint."
+        )
+    if f.category == "cname":
+        return (
+            f"The CNAME target {f.cname} is external to the seed domains — "
+            f"its configuration and response are not controlled by the scanned organisation."
+        )
+    if "hostnameCertificateMismatch" in f.tags:
+        return (
+            f"{f.asset} presents a certificate that does not match its hostname — "
+            f"the mismatch indicates a server identity that cannot be verified at the TLS layer."
+        )
+    return (
+        f"{f.title} — score {attacker_score(f)} — is the highest-priority finding in this dataset."
+    )
+
+
+def _researcher_pick(findings: list[Finding]) -> dict[str, str]:
+    if not findings:
+        return {}
+    best = findings[0]  # already sorted by attacker_score() in detect_findings()
+    return {
+        "finding_title": best.title,
+        "hook": _build_hook(best),
+        "technical_detail": best.body,
+        "researcher_note": _build_researcher_note(best),
+    }
+
+
 def _build_teaser_context(
     data: ReportData,
     findings: list[Finding],
@@ -165,6 +240,7 @@ def _build_teaser_context(
     return {
         "customer": data.customer,
         "scan_date": data.scan_date,
+        "seed_domains": list(data.seed_domains),
         "seed_domain_0": seed_domain_0,
         "seed_domain_count": len(data.seed_domains),
         "total_apps": data.total_apps,
@@ -188,6 +264,7 @@ def _build_teaser_context(
         "crit_count": sum(1 for f in findings if f.fc_class == "crit"),
         "high_count": sum(1 for f in findings if f.fc_class == "d-lvl"),
         "med_count": sum(1 for f in findings if f.fc_class == "med"),
+        "ai_analysis": _researcher_pick(findings),
     }
 
 

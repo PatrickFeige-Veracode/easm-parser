@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Veracode EASM — {{ seed_domain_0 }} · External Attack Surface Report</title>
+<title>Veracode EASM — {{ seed_domains | join(' · ') }} · External Attack Surface Report</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -330,7 +330,7 @@ tbody td { padding:10px 14px; vertical-align:top; line-height:1.5; color:var(--n
   </div>
   <div class="tb-right">
     <span class="tb-pill passive">Passive Discovery</span>
-    <span class="tb-scan">{{ seed_domain_0 }} · {{ scan_date }}</span>
+    <span class="tb-scan">{{ seed_domains | join(' · ') }} · {{ scan_date }}</span>
   </div>
 </header>
 
@@ -352,7 +352,7 @@ tbody td { padding:10px 14px; vertical-align:top; line-height:1.5; color:var(--n
       <span style="color:#fff;font-size:17px;font-weight:800;letter-spacing:-.3px;text-transform:lowercase;font-family:'Inter',sans-serif;">veracode</span>
     </div>
     <div style="font-family:'JetBrains Mono','DM Mono',monospace;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.2em;color:#E31837;margin-bottom:16px;">External Attack Surface Management</div>
-    <h1 style="color:#fff;font-size:46px;font-weight:900;letter-spacing:-.04em;line-height:1.02;margin-bottom:16px;">{{ seed_domain_0 }}<br>Attack Surface<br>Report</h1>
+    <h1 style="color:#fff;font-size:46px;font-weight:900;letter-spacing:-.04em;line-height:1.02;margin-bottom:16px;">{% for d in seed_domains %}{{ d }}<br>{% endfor %}Attack Surface<br>Report</h1>
     <p style="font-size:15px;color:rgba(255,255,255,.45);max-width:480px;line-height:1.65;font-weight:400;margin-bottom:0;">Veracode EASM passive discovery scan · {{ scan_date }} · {{ seed_domain_count }} seed domain{% if seed_domain_count != 1 %}s{% endif %} · No agents or integrations</p>
   </div>
   <div style="margin:0;">
@@ -396,12 +396,12 @@ tbody td { padding:10px 14px; vertical-align:top; line-height:1.5; color:var(--n
 </div><!-- /main-content -->
 
 <footer class="foot">
-  <span>Veracode External Attack Surface Management · <strong>{{ seed_domain_0 }}</strong> · Scan {{ scan_date }} · Passive discovery only</span>
+  <span>Veracode External Attack Surface Management · <strong>{{ seed_domains | join(' · ') }}</strong> · Scan {{ scan_date }} · Passive discovery only</span>
   <span><a href="https://www.veracode.com">veracode.com</a></span>
 </footer>
 
 <script>
-const REPORT_TARGET = {{ seed_domain_0 | tojson }};
+const REPORT_TARGET = {{ seed_domains | join(' · ') | tojson }};
 const REPORT_SCAN   = {{ scan_date | tojson }};
 const REPORT_CUSTOMER = {{ customer | tojson }};
 

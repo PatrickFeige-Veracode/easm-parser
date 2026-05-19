@@ -10,3 +10,6 @@ __pycache__/
 .ruff_cache/
 dist/
 *.egg-info/
+*.xlsx
+.DS_Store
+ai_analysis_cache.json

@@ -6,7 +6,7 @@
   <!-- Hero -->
   <div class="hero sec-dark dots-d" id="se-hero">
     <div class="hero-orb1"></div>
-    <div class="hero-tag">Technical Analysis · {{ seed_domain_0 }}</div>
+    <div class="hero-tag">Technical Analysis · {{ seed_domains | join(' · ') }}</div>
     <h1>Full technical asset inventory<br><span style="color:var(--red)">&amp; exposure detail.</span></h1>
     <p class="hero-sub">Asset-level breakdown: subdomains, dangling CNAMEs, internal APIs, bare IPs, hygiene findings, and supplier vector detail. Scan date: {{ scan_date }}.</p>
     <div class="hero-stats">

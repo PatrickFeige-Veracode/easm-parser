@@ -23,9 +23,69 @@ _COMMERCIAL_CA_NAMES = frozenset({
 
 FC_CLASS: dict[str, str] = {"F": "crit", "D": "d-lvl", "B": "med", "A": ""}
 
+# Hostnames that indicate high-value targets from an attacker's perspective
+_AUTH_ASSET_RE = re.compile(r"(?:auth|login|oauth|sso|token|admin)", re.IGNORECASE)
+_DEV_ASSET_RE = re.compile(r"(?:sandbox|developer\.|devlake|netbox|netsuite|fulfil)", re.IGNORECASE)
+
 
 def fc_class(grade: str) -> str:
     return FC_CLASS.get(str(grade).upper(), "")
+
+
+def attacker_score(f: "Finding") -> int:
+    """Score a finding by how immediately actionable it is for an external attacker.
+
+    Higher = more interesting. Criteria in descending priority:
+    - Cleartext HTTP: credentials/sessions in plaintext, no TLS required
+    - Online status: the endpoint actually responds (not just 403)
+    - Internal API surface: intended to be internal, exposed externally
+    - Dev/staging/sandbox: lighter controls, test data, often mirrors production
+    - Auth/admin hostnames: session and credential exposure
+    - External CNAME chains: potential for hijack or misdirection
+    - Non-standard ports on bare IPs: unmanaged / shadow services
+    """
+    score = 0
+
+    # Status: online = actively responding (2xx), forbidden = gated (403)
+    score += {"online": 50, "forbidden": 8, "notFound": 0}.get(f.status, 5)
+
+    # clearHttp tag: highest signal — credentials traverse unencrypted
+    if "clearHttp" in f.tags:
+        score += 60
+
+    # internalApi tag: service designed for internal use, exposed externally
+    if "internalApi" in f.tags:
+        score += 25
+
+    # Certificate mismatch: server identity cannot be verified
+    if "hostnameCertificateMismatch" in f.tags:
+        score += 12
+
+    # Category weights
+    score += {"staging": 20, "internal_api": 18, "cname": 15, "hygiene": 8, "supplier": 4}.get(
+        f.category, 0
+    )
+
+    # Auth/admin hostname: session hijack or privilege escalation surface
+    if _AUTH_ASSET_RE.search(f.asset):
+        score += 25
+
+    # Developer tooling and network documentation tools: high recon value
+    if _DEV_ASSET_RE.search(f.asset):
+        score += 20
+
+    # Non-standard ports on bare IPs: shadow/unmanaged services
+    if f.port in (8080, 8443, 8000, 8888):
+        score += 15
+
+    # fc_class bonus
+    score += {"crit": 20, "d-lvl": 12, "med": 5}.get(f.fc_class, 0)
+
+    # Online asset routed through external CDN: confirms public routability
+    if f.cname and f.status == "online":
+        score += 10
+
+    return score
 
 
 def _worst_grade(grades: list[str]) -> str:
@@ -423,4 +483,4 @@ def detect_findings(
     findings.extend(_detect_unrecognised_supplier_findings(data, id_counter))
     findings.extend(_detect_mixed_ca_findings(data, id_counter))
 
-    return findings
+    return sorted(findings, key=attacker_score, reverse=True)

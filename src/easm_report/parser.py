@@ -168,11 +168,22 @@ def read_easm(
     tag_counts: dict[str, int] = dict(Counter(t for tags in df["_parsed_tags"] for t in tags))
     clear_http_count = int((df["application.clearHttp"] == 1).sum())
 
-    # Order seed domains: most-frequent first (primary scan seed), then alphabetical for the rest
-    _domain_counts = df["relatedDomain"].dropna().str.strip().str.lower().value_counts()
-    seed_domains = tuple(
-        str(d) for d in _domain_counts.index if str(d).strip()
+    # Seed domains: relatedDomain values with >= 2 unique app names.
+    # Auto-discovered related domains appear with exactly 1 unique app (as duplicate rows) and are excluded.
+    _rd_unique = (
+        df.dropna(subset=["relatedDomain"])
+        .groupby("relatedDomain")["application.name"]
+        .nunique()
     )
+    _seed_candidates = _rd_unique[_rd_unique >= 2].index
+    _domain_counts = (
+        df[df["relatedDomain"].isin(_seed_candidates)]["relatedDomain"]
+        .dropna()
+        .str.strip()
+        .str.lower()
+        .value_counts()
+    )
+    seed_domains = tuple(str(d) for d in _domain_counts.index if str(d).strip())
 
     logger.info("Parsed %d applications from %s", total_apps, easm_path.name)
 

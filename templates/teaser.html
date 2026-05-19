@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Veracode EASM — {{ seed_domain_0 }} · Attack Surface Snapshot</title>
+<title>Veracode EASM — {{ seed_domains | join(' · ') }} · Attack Surface Snapshot</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -201,7 +201,7 @@ tbody td { padding:10px 14px; vertical-align:top; line-height:1.5; color:var(--n
   <div class="tb-right">
     <span class="tb-pill teaser">Snapshot</span>
     <span class="tb-pill passive">Passive Discovery</span>
-    <span class="tb-scan">{{ seed_domain_0 }} · {{ scan_date }}</span>
+    <span class="tb-scan">{{ seed_domains | join(' · ') }} · {{ scan_date }}</span>
   </div>
 </header>
 
@@ -342,6 +342,19 @@ tbody td { padding:10px 14px; vertical-align:top; line-height:1.5; color:var(--n
 </section>
 {% endif %}
 
+<!-- SPOTLIGHT FINDING -->
+{% if ai_analysis %}
+<section class="sec" style="background:var(--navy);padding:40px 32px;">
+  <div style="max-width:680px;margin:0 auto;">
+    <p style="font-size:20px;font-weight:800;color:#fff;line-height:1.3;margin-bottom:20px;letter-spacing:-.02em;">{{ ai_analysis.hook }}</p>
+    <p style="font-size:13.5px;color:rgba(255,255,255,.65);line-height:1.7;margin-bottom:20px;">{{ ai_analysis.technical_detail }}</p>
+    <div style="border-left:3px solid #E31837;padding-left:16px;">
+      <p style="font-size:12.5px;color:rgba(255,255,255,.5);line-height:1.65;margin:0;">{{ ai_analysis.researcher_note }}</p>
+    </div>
+  </div>
+</section>
+{% endif %}
+
 <!-- SUPPLY CHAIN -->
 {% if top_suppliers %}
 <section class="sec sec-white">
@@ -416,7 +429,7 @@ tbody td { padding:10px 14px; vertical-align:top; line-height:1.5; color:var(--n
 </div><!-- /main -->
 
 <footer class="foot">
-  <span>Veracode External Attack Surface Management · <strong>{{ seed_domain_0 }}</strong> · Scan {{ scan_date }} · Passive discovery only</span>
+  <span>Veracode External Attack Surface Management · <strong>{{ seed_domains | join(' · ') }}</strong> · Scan {{ scan_date }} · Passive discovery only</span>
   <span><a href="https://www.veracode.com">veracode.com</a></span>
 </footer>
 

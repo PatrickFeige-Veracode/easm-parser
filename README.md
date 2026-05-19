@@ -129,11 +129,41 @@ A single-page preview designed to share with a prospect or stakeholder before th
 - **Hero stats** — Applications, Unique FQDNs, Suppliers, CNAME records, internalApi-tagged assets
 - **Attack surface grid** — All key metrics with red/amber highlights (third-party CNAME targets, bare IPs, HSTS issues, grade F/D/B/A counts)
 - **Grade distribution** — Risk grade bar chart across all discovered assets
-- **Top 3 findings** — Highest-severity findings in full finding-card format
+- **Spotlight finding** — The highest-priority finding selected by attacker scoring (see below)
+- **Top 3 findings** — Three most attacker-relevant findings in full finding-card format
 - **Top 5 suppliers** — Proximity bar chart with PII/PCI/AI classification counts
 - **Call to action** — Contact prompt for the full report
 
 All figures come directly from the xlsx data — nothing is invented or estimated.
+
+---
+
+## Finding prioritisation
+
+All findings — in both the full report and the snapshot — are sorted by an attacker-relevance score computed from the scan data. The scoring logic is in `src/easm_report/findings.py:attacker_score()`.
+
+**Signals, in descending weight:**
+
+| Signal | Points | Rationale |
+|--------|--------|-----------|
+| Cleartext HTTP (`clearHttp` tag) | +60 | Credentials and session tokens traverse the network in plaintext |
+| Status `online` | +50 | Endpoint actively responds — no bypass needed to interact with it |
+| `internalApi` tag | +25 | Service designed for internal use, exposed on a public address |
+| Auth/admin hostname (`auth`, `login`, `oauth`, `sso`, `token`, `admin`) | +25 | Session hijack or privilege escalation surface |
+| Developer tooling hostname (`sandbox`, `developer.`, `devlake`, `netbox`, `netsuite`, `fulfil`) | +20 | High recon value; tooling often carries credentials or internal topology |
+| Category: staging | +20 | Dev/QA/sandbox environments — reduced controls, data that mirrors production |
+| `fc_class` crit | +20 | Worst observed risk grade in the Veracode EASM grading model |
+| Category: internal API | +18 | Internal API surface class |
+| Non-standard port (8080, 8443, 8000, 8888) on bare IP | +15 | Unmanaged or shadow services |
+| Category: CNAME | +15 | External CNAME chain — potential for hijack or misdirection |
+| `hostnameCertificateMismatch` tag | +12 | TLS identity cannot be verified |
+| `fc_class` d-lvl | +12 | Grade D in Veracode grading |
+| Online asset with external CNAME | +10 | Confirms the live endpoint routes through infrastructure outside the seed domains |
+| Status `forbidden` | +8 | Exists and responds, gated by 403 |
+| Category: hygiene | +8 | Configuration issues |
+| `fc_class` med | +5 | Grade B in Veracode grading |
+
+The top-scored finding is used as the **spotlight finding** in the snapshot report. The full report lists all findings in the same order.
 
 ---
 

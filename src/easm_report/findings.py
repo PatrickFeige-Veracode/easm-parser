@@ -184,12 +184,11 @@ def _detect_staging_findings(
             tags_set.update(r["_parsed_tags"])
         tags = tuple(sorted(tags_set))
         body = (
-            f"{asset} (port{'s' if len(ports) > 1 else ''} {ports_str}) is a staging/development asset "
-            f"with status {status} and grade {worst}. "
+            f"Port{'s' if len(ports) > 1 else ''} {ports_str} · status {status} · grade {worst}. "
+            f"Staging/development asset resolvable externally."
         )
         if cname and cname.lower() not in ("no", "none", "nan", ""):
-            body += f"CNAME target: {cname}. "
-        body += "Resolvable staging infrastructure widens the attack surface visible to external actors."
+            body += f" CNAME target: {cname}."
         fid = f"staging-{id_counter[0]}"
         id_counter[0] += 1
         findings.append(
@@ -234,13 +233,13 @@ def _detect_internal_api_findings(
         tags = tuple(sorted(tags_set))
         hsts = "headerMissingHsts" in tags or "hstsMisconfig" in tags
         body = (
-            f"{asset} (port{'s' if len(ports) > 1 else ''} {ports_str}, status {status}, grade {worst}) "
-            f"is tagged internalApi — an internal API endpoint exposed externally. "
+            f"Port{'s' if len(ports) > 1 else ''} {ports_str} · status {status} · grade {worst}. "
+            f"Tagged internalApi — internal API endpoint exposed externally."
         )
         if cname and cname.lower() not in ("no", "none", "nan", ""):
-            body += f"CNAME target: {cname}. "
+            body += f" CNAME target: {cname}."
         if hsts:
-            body += "HSTS header is absent or misconfigured on this endpoint. "
+            body += " HSTS header absent or misconfigured."
         findings.append(
             Finding(
                 id=f"internal-api-{id_counter[0]}",
@@ -483,4 +482,15 @@ def detect_findings(
     findings.extend(_detect_unrecognised_supplier_findings(data, id_counter))
     findings.extend(_detect_mixed_ca_findings(data, id_counter))
 
-    return sorted(findings, key=attacker_score, reverse=True)
+    # One finding per (asset, port) — keep the highest-scoring where asset is known.
+    seen: dict[tuple[str, int], Finding] = {}
+    no_asset: list[Finding] = []
+    for f in findings:
+        if not f.asset:
+            no_asset.append(f)
+        else:
+            key = (f.asset, f.port)
+            if key not in seen or attacker_score(f) > attacker_score(seen[key]):
+                seen[key] = f
+
+    return sorted(list(seen.values()) + no_asset, key=attacker_score, reverse=True)

@@ -31,6 +31,7 @@ class ReportData:
     customer: str
     scan_date: str
     seed_domains: tuple[str, ...]
+    seed_count: int
     total_apps: int
     unique_fqdns: int
     bare_ip_count: int

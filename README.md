@@ -89,6 +89,9 @@ easm-report --customer "Acme Corp" --teaser
 easm-report --customer "Acme Corp" --teaser --pdf
 # → outputs/acme-corp/acme-corp-veracode-easm-teaser.html
 # → outputs/acme-corp/acme-corp-veracode-easm-teaser.pdf
+
+# If auto-detection overcounts seed domains, override with --seeds:
+easm-report --customer "Acme Corp" --seeds 6
 ```
 
 The tool auto-detects the xlsx files by filename pattern:
@@ -103,6 +106,7 @@ If multiple matches or no match is found, it tells you clearly. It never silentl
 
 ```
 --customer     Customer name — used in report header and output folder  [required]
+--seeds        Override the seed domain count (use when auto-detection overcounts)
 --input-dir    Folder containing xlsx files  [default: inputs]
 --output-dir   Parent folder for output; a subfolder named after the customer is created inside  [default: outputs]
 --teaser       Generate a single-page snapshot instead of the full report

@@ -41,7 +41,8 @@ def find_file(directory: Path, pattern: str, label: str) -> Path:
 @click.option("--verbose", is_flag=True, default=False)
 @click.option("--teaser", is_flag=True, default=False, help="Generate a single-page teaser instead of the full report")
 @click.option("--pdf", is_flag=True, default=False, help="Also generate a PDF version of the report (requires weasyprint)")
-def main(customer: str, input_dir: str, output_dir: str, verbose: bool, teaser: bool, pdf: bool) -> None:
+@click.option("--seeds", default=None, type=int, help="Override the seed domain count (use when auto-detection overcounts)")
+def main(customer: str, input_dir: str, output_dir: str, verbose: bool, teaser: bool, pdf: bool, seeds: int | None) -> None:
     logging.basicConfig(level=logging.DEBUG if verbose else logging.WARNING)
     try:
         base_dir = Path.cwd()
@@ -67,7 +68,7 @@ def main(customer: str, input_dir: str, output_dir: str, verbose: bool, teaser: 
         if not template_dir.exists():
             template_dir = base_dir / "templates"
 
-        report_data, dataframes = read_easm(easm_path, domain_path, customer, base_dir)
+        report_data, dataframes = read_easm(easm_path, domain_path, customer, base_dir, seeds=seeds)
         findings = detect_findings(report_data, dataframes)
 
         if teaser:

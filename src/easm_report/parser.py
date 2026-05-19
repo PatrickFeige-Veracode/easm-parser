@@ -128,6 +128,7 @@ def read_easm(
     domain_path: Path,
     customer: str,
     base_dir: Path,
+    seeds: int | None = None,
 ) -> tuple[ReportData, dict[str, Any]]:
     easm_path = validate_input_path(easm_path, base_dir)
     domain_path = validate_input_path(domain_path, base_dir)
@@ -217,6 +218,7 @@ def read_easm(
         customer=customer,
         scan_date=scan_date,
         seed_domains=seed_domains,
+        seed_count=seeds if seeds is not None else len(seed_domains),
         total_apps=total_apps,
         unique_fqdns=unique_fqdns,
         bare_ip_count=bare_ip_count,

@@ -107,9 +107,9 @@ def _build_context(
     return {
         "customer": data.customer,
         "scan_date": data.scan_date,
-        "seed_domains": list(data.seed_domains),
+        "seed_domains": list(data.seed_domains[:data.seed_count]),
         "seed_domain_0": seed_domain_0,
-        "seed_domain_count": len(data.seed_domains),
+        "seed_domain_count": data.seed_count,
         "total_apps": data.total_apps,
         "unique_fqdns": data.unique_fqdns,
         "bare_ip_count": data.bare_ip_count,
@@ -171,23 +171,23 @@ def _build_hook(f: Finding) -> str:
 def _build_researcher_note(f: Finding) -> str:
     if "clearHttp" in f.tags:
         return (
-            f"{f.asset} transmits over port {f.port} without TLS — "
-            f"form submissions and session tokens on this endpoint are visible on the network path."
+            f"Transmits over port {f.port} without TLS — "
+            f"form submissions and session tokens are visible on the network path."
         )
     if f.status == "online" and "internalApi" in f.tags:
         cname_note = f" via {f.cname}" if f.cname else ""
         return (
-            f"{f.asset} returns an active response{cname_note} — "
-            f"the confirmed online status means path and header enumeration requires no access bypass."
+            f"Returns an active response{cname_note} — "
+            f"path and header enumeration requires no access bypass."
         )
     if f.status == "online" and f.category == "staging":
         return (
-            f"{f.asset} is live and responding on port {f.port} — "
+            f"Live and responding on port {f.port} — "
             f"staging environments routinely carry reduced access controls and data that mirrors production."
         )
     if f.category == "cname" and f.status == "online":
         return (
-            f"{f.asset} is live and responding through {f.cname} on port {f.port} — "
+            f"Live and responding through {f.cname} on port {f.port} — "
             f"an external host outside the seed domains is in the serving path for this active endpoint."
         )
     if f.category == "cname":
@@ -197,11 +197,11 @@ def _build_researcher_note(f: Finding) -> str:
         )
     if "hostnameCertificateMismatch" in f.tags:
         return (
-            f"{f.asset} presents a certificate that does not match its hostname — "
+            f"Presents a certificate that does not match its hostname — "
             f"the mismatch indicates a server identity that cannot be verified at the TLS layer."
         )
     return (
-        f"{f.title} — score {attacker_score(f)} — is the highest-priority finding in this dataset."
+        f"Score {attacker_score(f)} — highest-priority finding in this dataset."
     )
 
 
@@ -240,9 +240,9 @@ def _build_teaser_context(
     return {
         "customer": data.customer,
         "scan_date": data.scan_date,
-        "seed_domains": list(data.seed_domains),
+        "seed_domains": list(data.seed_domains[:data.seed_count]),
         "seed_domain_0": seed_domain_0,
-        "seed_domain_count": len(data.seed_domains),
+        "seed_domain_count": data.seed_count,
         "total_apps": data.total_apps,
         "unique_fqdns": data.unique_fqdns,
         "bare_ip_count": data.bare_ip_count,

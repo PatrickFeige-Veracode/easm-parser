@@ -41,8 +41,8 @@ def find_file(directory: Path, pattern: str, label: str) -> Path:
 @click.option("--verbose", is_flag=True, default=False)
 @click.option("--teaser", is_flag=True, default=False, help="Generate a single-page teaser instead of the full report")
 @click.option("--pdf", is_flag=True, default=False, help="Also generate a PDF version of the report (requires weasyprint)")
-@click.option("--seeds", default=None, type=int, help="Override the seed domain count (use when auto-detection overcounts)")
-def main(customer: str, input_dir: str, output_dir: str, verbose: bool, teaser: bool, pdf: bool, seeds: int | None) -> None:
+@click.option("--seeds", default=None, type=str, help="Comma-separated seed domains, e.g. 'example.com,example.co.uk' (overrides auto-detection)")
+def main(customer: str, input_dir: str, output_dir: str, verbose: bool, teaser: bool, pdf: bool, seeds: str | None) -> None:
     logging.basicConfig(level=logging.DEBUG if verbose else logging.WARNING)
     try:
         base_dir = Path.cwd()

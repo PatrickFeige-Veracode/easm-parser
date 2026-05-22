@@ -123,12 +123,27 @@ def _read_classified_names(easm_path: Path, sheet: str) -> set[str]:
         return set()
 
 
+_DOMAIN_RE = re.compile(
+    r"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)+$"
+)
+
+
+def _parse_seed_domains(seeds_str: str) -> tuple[str, ...]:
+    domains = [d.strip().lower() for d in seeds_str.split(",") if d.strip()]
+    if not domains:
+        raise ValueError("--seeds produced no valid domains after parsing")
+    for d in domains:
+        if not _DOMAIN_RE.match(d):
+            raise ValueError(f"Invalid domain in --seeds: {d!r}")
+    return tuple(domains)
+
+
 def read_easm(
     easm_path: Path,
     domain_path: Path,
     customer: str,
     base_dir: Path,
-    seeds: int | None = None,
+    seeds: str | None = None,
 ) -> tuple[ReportData, dict[str, Any]]:
     easm_path = validate_input_path(easm_path, base_dir)
     domain_path = validate_input_path(domain_path, base_dir)
@@ -169,22 +184,26 @@ def read_easm(
     tag_counts: dict[str, int] = dict(Counter(t for tags in df["_parsed_tags"] for t in tags))
     clear_http_count = int((df["application.clearHttp"] == 1).sum())
 
-    # Seed domains: relatedDomain values with >= 2 unique app names.
-    # Auto-discovered related domains appear with exactly 1 unique app (as duplicate rows) and are excluded.
-    _rd_unique = (
-        df.dropna(subset=["relatedDomain"])
-        .groupby("relatedDomain")["application.name"]
-        .nunique()
-    )
-    _seed_candidates = _rd_unique[_rd_unique >= 2].index
-    _domain_counts = (
-        df[df["relatedDomain"].isin(_seed_candidates)]["relatedDomain"]
-        .dropna()
-        .str.strip()
-        .str.lower()
-        .value_counts()
-    )
-    seed_domains = tuple(str(d) for d in _domain_counts.index if str(d).strip())
+    if seeds is not None:
+        seed_domains = _parse_seed_domains(seeds)
+        logger.info("Using explicit seed domains: %s", ", ".join(seed_domains))
+    else:
+        # Auto-detect: relatedDomain values with >= 2 unique app names.
+        # Auto-discovered related domains appear with exactly 1 unique app and are excluded.
+        _rd_unique = (
+            df.dropna(subset=["relatedDomain"])
+            .groupby("relatedDomain")["application.name"]
+            .nunique()
+        )
+        _seed_candidates = _rd_unique[_rd_unique >= 2].index
+        _domain_counts = (
+            df[df["relatedDomain"].isin(_seed_candidates)]["relatedDomain"]
+            .dropna()
+            .str.strip()
+            .str.lower()
+            .value_counts()
+        )
+        seed_domains = tuple(str(d) for d in _domain_counts.index if str(d).strip())
 
     logger.info("Parsed %d applications from %s", total_apps, easm_path.name)
 
@@ -218,7 +237,7 @@ def read_easm(
         customer=customer,
         scan_date=scan_date,
         seed_domains=seed_domains,
-        seed_count=seeds if seeds is not None else len(seed_domains),
+        seed_count=len(seed_domains),
         total_apps=total_apps,
         unique_fqdns=unique_fqdns,
         bare_ip_count=bare_ip_count,

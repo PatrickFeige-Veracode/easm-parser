@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Veracode EASM — {{ seed_domains | join(' · ') }} · External Attack Surface Report</title>
+<title>Veracode EASM — {{ seed_domain_0 }}{% if seed_domains_overflow %} +{{ seed_domains_overflow }} more{% endif %} · External Attack Surface Report</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -172,15 +172,15 @@ tbody td { padding:10px 14px; vertical-align:top; line-height:1.5; color:var(--n
 .pq-tr { background:#131D38; color:rgba(255,255,255,.7); }
 
 /* ── PROGRESS ── */
-.pr-row { display:flex; align-items:center; gap:12px; margin-bottom:10px; font-size:12.5px; }
-.pr-lab { width:200px; flex-shrink:0; font-size:12px; font-weight:600; color:var(--navy); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.pr-bar { flex:1; background:var(--g200); border-radius:3px; height:7px; overflow:hidden; }
-.pr-fill { height:100%; border-radius:3px; background:var(--red); }
+.pr-row { display:flex; align-items:center; gap:14px; margin-bottom:14px; font-size:14px; }
+.pr-lab { width:220px; flex-shrink:0; font-size:13.5px; font-weight:600; color:var(--navy); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.pr-bar { flex:1; background:var(--g200); border-radius:4px; height:10px; overflow:hidden; }
+.pr-fill { height:100%; border-radius:4px; background:var(--red); }
 .pr-fill.b { background:var(--blue-lt); }
 .pr-fill.a { background:var(--amber); }
 .pr-fill.g { background:var(--green); }
 .pr-fill.grey { background:var(--g400); }
-.pr-val { width:50px; text-align:right; color:var(--g600); font-family:var(--mono); font-size:11px; font-weight:600; }
+.pr-val { width:54px; text-align:right; color:var(--g600); font-family:var(--mono); font-size:13px; font-weight:600; }
 
 /* ── CARDS ── */
 .card-row { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:12px; }
@@ -311,7 +311,7 @@ tbody td { padding:10px 14px; vertical-align:top; line-height:1.5; color:var(--n
   .card { page-break-inside:avoid; break-inside:avoid; }
   .alert { page-break-inside:avoid; break-inside:avoid; }
   table { width:100%; max-width:100%; table-layout:fixed; font-size:10pt; border-collapse:collapse; }
-  th, td { padding:4px; text-align:left; word-wrap:break-word; overflow-wrap:break-word; word-break:break-all; }
+  th, td { padding:4px; text-align:left; overflow-wrap:break-word; }
   tr { page-break-inside:avoid; break-inside:avoid; }
   thead { display:table-header-group; }
 }
@@ -337,7 +337,7 @@ tbody td { padding:10px 14px; vertical-align:top; line-height:1.5; color:var(--n
   </div>
   <div class="tb-right">
     <span class="tb-pill passive">Passive Discovery</span>
-    <span class="tb-scan">{{ seed_domains | join(' · ') }} · {{ scan_date }}</span>
+    <span class="tb-scan">{{ seed_domains_preview | join(' · ') }}{% if seed_domains_overflow %} · +{{ seed_domains_overflow }} more{% endif %} · {{ scan_date }}</span>
   </div>
 </header>
 
@@ -347,7 +347,7 @@ tbody td { padding:10px 14px; vertical-align:top; line-height:1.5; color:var(--n
 <div class="main" id="main-content">
 
 <!-- PRINT COVER -->
-<div id="print-toc" style="display:none; flex-direction:column; justify-content:space-between; min-height:100vh; background:#060C1A; padding:72px 64px; position:relative; overflow:hidden; page-break-after:always; break-after:page;">
+<div id="print-toc" style="display:none; flex-direction:column; background:#060C1A; padding:72px 64px; position:relative; overflow:hidden; page-break-after:always; break-after:page;">
   <div style="position:absolute;top:-120px;right:-100px;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(0,195,137,.06) 0%,transparent 70%);pointer-events:none;"></div>
   <div style="position:absolute;bottom:-80px;left:-60px;width:350px;height:350px;border-radius:50%;background:rgba(227,24,55,.04);pointer-events:none;"></div>
   <div>
@@ -359,7 +359,7 @@ tbody td { padding:10px 14px; vertical-align:top; line-height:1.5; color:var(--n
       <span style="color:#fff;font-size:17px;font-weight:800;letter-spacing:-.3px;text-transform:lowercase;font-family:'Inter',sans-serif;">veracode</span>
     </div>
     <div style="font-family:'JetBrains Mono','DM Mono',monospace;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.2em;color:#E31837;margin-bottom:16px;">External Attack Surface Management</div>
-    <h1 style="color:#fff;font-size:46px;font-weight:900;letter-spacing:-.04em;line-height:1.02;margin-bottom:16px;">{% for d in seed_domains %}{{ d }}<br>{% endfor %}Attack Surface<br>Report</h1>
+    <h1 style="color:#fff;font-size:46px;font-weight:900;letter-spacing:-.04em;line-height:1.02;margin-bottom:16px;">{{ seed_domain_0 }}<br>{% if seed_domain_count > 1 %}<span style="font-size:22px;opacity:.5">+{{ seed_domain_count - 1 }} more</span><br>{% endif %}Attack Surface<br>Report</h1>
     <p style="font-size:15px;color:rgba(255,255,255,.45);max-width:480px;line-height:1.65;font-weight:400;margin-bottom:0;">Veracode EASM passive discovery scan · {{ scan_date }} · {{ seed_domain_count }} seed domain{% if seed_domain_count != 1 %}s{% endif %} · No agents or integrations</p>
   </div>
   <div style="margin:0;">
@@ -403,12 +403,12 @@ tbody td { padding:10px 14px; vertical-align:top; line-height:1.5; color:var(--n
 </div><!-- /main-content -->
 
 <footer class="foot">
-  <span>Veracode External Attack Surface Management · <strong>{{ seed_domains | join(' · ') }}</strong> · Scan {{ scan_date }} · Passive discovery only</span>
+  <span>Veracode External Attack Surface Management · <strong>{{ seed_domains_preview | join(' · ') }}{% if seed_domains_overflow %} · +{{ seed_domains_overflow }} more{% endif %}</strong> · Scan {{ scan_date }} · Passive discovery only</span>
   <span><a href="https://www.veracode.com">veracode.com</a></span>
 </footer>
 
 <script>
-const REPORT_TARGET = {{ seed_domains | join(' · ') | tojson }};
+const REPORT_TARGET = {{ seed_domain_0 | tojson }};
 const REPORT_SCAN   = {{ scan_date | tojson }};
 const REPORT_CUSTOMER = {{ customer | tojson }};
 

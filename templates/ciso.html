@@ -23,7 +23,7 @@
   <div class="sec sec-white dots-l" id="ciso-ttv">
     <div class="eyebrow">Discovery · How it works</div>
     <h2>{{ seed_domain_count }} seed domain{% if seed_domain_count != 1 %}s{% endif %}. Passive signals. No credentials.</h2>
-    <p style="max-width:680px;color:var(--g600);margin-bottom:30px">Everything in this report was derived passively from {% for d in seed_domains %}<code>{{ d }}</code>{% if not loop.last %} and {% endif %}{% endfor %} — no agents, no authenticated requests, no prior asset inventory. Veracode EASM chains four publicly-observable data sources to build a complete picture of the external estate.</p>
+    <p style="max-width:680px;color:var(--g600);margin-bottom:30px">Everything in this report was derived passively from {% for d in seed_domains_preview %}<code>{{ d }}</code>{% if not loop.last %} and {% endif %}{% endfor %}{% if seed_domains_overflow %} and <strong>{{ seed_domains_overflow }} more</strong>{% endif %} — no agents, no authenticated requests, no prior asset inventory. Veracode EASM chains four publicly-observable data sources to build a complete picture of the external estate.</p>
     <div class="steps">
       <div class="step">
         <div class="st-num" style="font-size:.75rem;color:var(--red)">01 — DNS</div>
@@ -156,7 +156,7 @@
     <div class="eyebrow-w">Supply chain · Proximity scores</div>
     <h2 style="color:#fff">{{ suppliers | length }} supplier{% if suppliers | length != 1 %}s{% endif %}. Proximity measures embedded dependency.</h2>
     <p style="color:rgba(255,255,255,.55);max-width:640px;margin-bottom:28px">Proximity score measures how deeply a supplier is embedded in the {{ customer }} attack surface — how many DNS, certificate, software, and header connections exist between the supplier and your live estate.</p>
-    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--r);padding:22px 24px;margin-bottom:20px;break-inside:avoid;page-break-inside:avoid">
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--r);padding:28px 32px;margin-bottom:20px;break-inside:avoid;page-break-inside:avoid">
       {% for s in top_suppliers %}
       <div class="pr-row">
         <span class="pr-lab" style="color:rgba(255,255,255,.7)">{{ s.name }}</span>

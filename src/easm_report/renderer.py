@@ -97,6 +97,8 @@ def _build_context(
         )
 
     seed_domain_0 = data.seed_domains[0] if data.seed_domains else data.customer.lower()
+    seed_domains_preview = list(data.seed_domains[:5])
+    seed_domains_overflow = max(0, data.seed_count - 5)
 
     crit_count = sum(1 for f in findings if f.fc_class == "crit")
     high_count = sum(1 for f in findings if f.fc_class == "d-lvl")
@@ -107,6 +109,8 @@ def _build_context(
         "customer": data.customer,
         "scan_date": data.scan_date,
         "seed_domains": list(data.seed_domains[:data.seed_count]),
+        "seed_domains_preview": seed_domains_preview,
+        "seed_domains_overflow": seed_domains_overflow,
         "seed_domain_0": seed_domain_0,
         "seed_domain_count": data.seed_count,
         "total_apps": data.total_apps,
@@ -240,6 +244,8 @@ def _build_teaser_context(
         "customer": data.customer,
         "scan_date": data.scan_date,
         "seed_domains": list(data.seed_domains[:data.seed_count]),
+        "seed_domains_preview": seed_domains_preview,
+        "seed_domains_overflow": seed_domains_overflow,
         "seed_domain_0": seed_domain_0,
         "seed_domain_count": data.seed_count,
         "total_apps": data.total_apps,

@@ -6,7 +6,7 @@
   <!-- Hero -->
   <div class="hero sec-dark dots-d" id="grc-hero">
     <div class="hero-orb1"></div>
-    <div class="hero-tag">Governance, Risk &amp; Compliance · {{ seed_domains | join(' · ') }}</div>
+    <div class="hero-tag">Governance, Risk &amp; Compliance · {{ seed_domains_preview | join(' · ') }}{% if seed_domains_overflow %} · +{{ seed_domains_overflow }} more{% endif %}</div>
     <h1>Third-party risk posture &amp;<br><span style="color:var(--amber)">data classification status.</span></h1>
     <p class="hero-sub">Supplier data classification, governance gaps, audit-ready remediation actions, and supplier register gap analysis mapped from the Veracode EASM scan.</p>
     <div class="hero-stats">
@@ -23,45 +23,39 @@
     <div class="eyebrow">Data classification · Supplier scope</div>
     <h2>PII, PCI, and AI supplier classifications.</h2>
     <p style="color:var(--g600);max-width:640px;margin-bottom:24px">Veracode EASM classifies every discovered supplier connection against three regulated data contexts — identifying which third parties have a technical path to sensitive data.</p>
-    <div style="display:flex;flex-direction:column;gap:12px">
-      <div class="card" style="border-left:4px solid {% if pii_suppliers %}var(--red){% else %}var(--green){% endif %}">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="border-left:4px solid {% if pii_suppliers %}var(--red){% else %}var(--green){% endif %};padding:18px 24px;background:var(--g50,#f9fafb);border-radius:0 var(--r) var(--r) 0">
         <div style="font-family:var(--mono);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:{% if pii_suppliers %}var(--red){% else %}var(--green){% endif %};margin-bottom:10px">PII Classification</div>
         <div style="font-size:24px;font-weight:700;color:{% if pii_suppliers %}var(--red){% else %}var(--green){% endif %};margin-bottom:10px">{{ pii_suppliers | length }} supplier{% if pii_suppliers | length != 1 %}s{% endif %}</div>
         {% if pii_suppliers %}
-        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
-          {% for s in pii_suppliers %}
-          <span style="font-size:11.5px;font-weight:600;color:var(--navy);background:rgba(227,24,55,.06);border:1px solid rgba(227,24,55,.2);padding:3px 10px;border-radius:4px">{{ s.name }}</span>
-          {% endfor %}
+        <div style="background:rgba(227,24,55,.05);border-radius:6px;padding:14px 16px;margin-bottom:10px">
+          <p style="font-size:12.5px;font-weight:500;color:var(--navy);line-height:1.8;margin:0">{% for s in pii_suppliers %}{{ s.name }}{% if not loop.last %} · {% endif %}{% endfor %}</p>
         </div>
-        <p style="font-size:11px;color:var(--g600);margin-top:4px;line-height:1.5">Connected via SPF/MX records — classified by Veracode EASM as having a technical path to personal data. Verify current data processing agreement coverage.</p>
+        <p style="font-size:11px;color:var(--g600);line-height:1.5">Connected via SPF/MX records — classified by Veracode EASM as having a technical path to personal data. Verify current data processing agreement coverage.</p>
         {% else %}
         <p style="font-size:13px;color:var(--g600);line-height:1.6">No PII-classified supplier connections detected from passive discovery. This may reflect strong data segregation or a gap in EASM visibility — internal validation recommended.</p>
         {% endif %}
       </div>
-      <div class="card" style="border-left:4px solid {% if pci_suppliers %}var(--amber){% else %}var(--green){% endif %}">
+      <div style="border-left:4px solid {% if pci_suppliers %}var(--amber){% else %}var(--green){% endif %};padding:18px 24px;background:var(--g50,#f9fafb);border-radius:0 var(--r) var(--r) 0">
         <div style="font-family:var(--mono);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:{% if pci_suppliers %}var(--amber){% else %}var(--green){% endif %};margin-bottom:10px">PCI Classification</div>
         <div style="font-size:24px;font-weight:700;color:{% if pci_suppliers %}var(--amber){% else %}var(--green){% endif %};margin-bottom:10px">{{ pci_suppliers | length }} supplier{% if pci_suppliers | length != 1 %}s{% endif %}</div>
         {% if pci_suppliers %}
-        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
-          {% for s in pci_suppliers %}
-          <span style="font-size:11.5px;font-weight:600;color:var(--navy);background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.2);padding:3px 10px;border-radius:4px">{{ s.name }}</span>
-          {% endfor %}
+        <div style="background:rgba(245,158,11,.07);border-radius:6px;padding:14px 16px;margin-bottom:10px">
+          <p style="font-size:12.5px;font-weight:500;color:var(--navy);line-height:1.8;margin:0">{% for s in pci_suppliers %}{{ s.name }}{% if not loop.last %} · {% endif %}{% endfor %}</p>
         </div>
-        <p style="font-size:11px;color:var(--g600);margin-top:4px;line-height:1.5">Classified by Veracode EASM as connected to payment card data flows.</p>
+        <p style="font-size:11px;color:var(--g600);line-height:1.5">Classified by Veracode EASM as connected to payment card data flows.</p>
         {% else %}
         <p style="font-size:13px;color:var(--g600);line-height:1.6">No PCI-classified supplier connections detected. This may reflect strong payment card data segmentation, or a gap in EASM visibility — internal validation recommended.</p>
         {% endif %}
       </div>
-      <div class="card" style="border-left:4px solid {% if ai_suppliers %}var(--blue-lt){% else %}var(--green){% endif %}">
+      <div style="border-left:4px solid {% if ai_suppliers %}var(--blue-lt){% else %}var(--green){% endif %};padding:18px 24px;background:var(--g50,#f9fafb);border-radius:0 var(--r) var(--r) 0">
         <div style="font-family:var(--mono);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:{% if ai_suppliers %}var(--blue-lt){% else %}var(--green){% endif %};margin-bottom:10px">AI Classification</div>
         <div style="font-size:24px;font-weight:700;color:{% if ai_suppliers %}var(--blue-lt){% else %}var(--green){% endif %};margin-bottom:10px">{{ ai_suppliers | length }} supplier{% if ai_suppliers | length != 1 %}s{% endif %}</div>
         {% if ai_suppliers %}
-        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">
-          {% for s in ai_suppliers %}
-          <span style="font-size:11.5px;font-weight:600;color:var(--navy);background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.2);padding:3px 10px;border-radius:4px">{{ s.name }}</span>
-          {% endfor %}
+        <div style="background:rgba(59,130,246,.07);border-radius:6px;padding:14px 16px;margin-bottom:10px">
+          <p style="font-size:12.5px;font-weight:500;color:var(--navy);line-height:1.8;margin:0">{% for s in ai_suppliers %}{{ s.name }}{% if not loop.last %} · {% endif %}{% endfor %}</p>
         </div>
-        <p style="font-size:11px;color:var(--g600);margin-top:4px;line-height:1.5">Classified by Veracode EASM as an AI service connection.</p>
+        <p style="font-size:11px;color:var(--g600);line-height:1.5">Classified by Veracode EASM as an AI service connection.</p>
         {% else %}
         <p style="font-size:13px;color:var(--g600);line-height:1.6">No AI service supplier connections detected. No external AI data processing paths identified in the current estate from passive discovery.</p>
         {% endif %}

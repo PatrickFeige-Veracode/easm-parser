@@ -391,7 +391,7 @@ def patch_html_for_print(html_path: Path) -> str:
 
 def render_weasyprint(html_string: str, output_path: Path) -> None:
     try:
-        from weasyprint import HTML as WeasyprintHTML  # type: ignore[import-untyped]
+        from weasyprint import HTML as WeasyprintHTML
     except ImportError:
         raise EasmReportError(
             "WeasyPrint not installed. Run: pip install 'easm-report[pdf]'"

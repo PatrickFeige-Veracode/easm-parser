@@ -27,6 +27,10 @@ where = ["src"]
 strict = true
 python_version = "3.10"
 
+[[tool.mypy.overrides]]
+module = "weasyprint.*"
+ignore_missing_imports = true
+
 [tool.ruff]
 line-length = 100
 select = ["E", "F", "I", "UP", "S"]

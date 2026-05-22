@@ -156,7 +156,7 @@
     <div class="eyebrow-w">Supply chain · Proximity scores</div>
     <h2 style="color:#fff">{{ suppliers | length }} supplier{% if suppliers | length != 1 %}s{% endif %}. Proximity measures embedded dependency.</h2>
     <p style="color:rgba(255,255,255,.55);max-width:640px;margin-bottom:28px">Proximity score measures how deeply a supplier is embedded in the {{ customer }} attack surface — how many DNS, certificate, software, and header connections exist between the supplier and your live estate.</p>
-    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--r);padding:22px 24px;margin-bottom:20px">
+    <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--r);padding:22px 24px;margin-bottom:20px;break-inside:avoid;page-break-inside:avoid">
       {% for s in top_suppliers %}
       <div class="pr-row">
         <span class="pr-lab" style="color:rgba(255,255,255,.7)">{{ s.name }}</span>

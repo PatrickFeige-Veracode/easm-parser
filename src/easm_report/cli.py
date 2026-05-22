@@ -39,10 +39,13 @@ def find_file(directory: Path, pattern: str, label: str) -> Path:
 @click.option("--input-dir", default="inputs", show_default=True, type=click.Path(), help="Folder containing xlsx files")
 @click.option("--output-dir", default="outputs", show_default=True, type=click.Path(), help="Folder for HTML output")
 @click.option("--verbose", is_flag=True, default=False)
-@click.option("--teaser", is_flag=True, default=False, help="Generate a single-page teaser instead of the full report")
-@click.option("--pdf", is_flag=True, default=False, help="Also generate a PDF version of the report (requires weasyprint)")
-@click.option("--seeds", default=None, type=str, help="Comma-separated seed domains, e.g. 'example.com,example.co.uk' (overrides auto-detection)")
-def main(customer: str, input_dir: str, output_dir: str, verbose: bool, teaser: bool, pdf: bool, seeds: str | None) -> None:
+@click.option("--teaser", is_flag=True, default=False, help="Single-page teaser instead of full report")
+@click.option("--pdf", is_flag=True, default=False, help="Also generate a PDF (requires weasyprint)")
+@click.option("--seeds", default=None, type=str, help="Comma-separated seed domains, e.g. 'a.com,b.com'")
+def main(
+    customer: str, input_dir: str, output_dir: str,
+    verbose: bool, teaser: bool, pdf: bool, seeds: str | None,
+) -> None:
     logging.basicConfig(level=logging.DEBUG if verbose else logging.WARNING)
     try:
         base_dir = Path.cwd()
@@ -75,15 +78,18 @@ def main(customer: str, input_dir: str, output_dir: str, verbose: bool, teaser: 
             output_path = validate_teaser_output_path(customer, out_dir)
             render_teaser(report_data, findings, template_dir, output_path)
             click.echo(f"\n✓  Teaser written: {output_path}")
+            top_n = min(3, len(findings))
             click.echo(
-                f"   {report_data.total_apps} applications · {len(report_data.suppliers)} suppliers · top {min(3, len(findings))} findings shown"
+                f"   {report_data.total_apps} applications · {len(report_data.suppliers)} suppliers"
+                f" · top {top_n} findings shown"
             )
         else:
             output_path = validate_output_path(customer, out_dir)
             render_report(report_data, dataframes, findings, template_dir, output_path)
             click.echo(f"\n✓  Report written: {output_path}")
             click.echo(
-                f"   {report_data.total_apps} applications · {len(findings)} findings · {len(report_data.suppliers)} suppliers"
+                f"   {report_data.total_apps} applications · {len(findings)} findings"
+                f" · {len(report_data.suppliers)} suppliers"
             )
 
         if pdf:

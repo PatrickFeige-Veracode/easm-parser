@@ -32,7 +32,7 @@ def fc_class(grade: str) -> str:
     return FC_CLASS.get(str(grade).upper(), "")
 
 
-def attacker_score(f: "Finding") -> int:
+def attacker_score(f: Finding) -> int:
     """Score a finding by how immediately actionable it is for an external attacker.
 
     Higher = more interesting. Criteria in descending priority:
@@ -110,7 +110,8 @@ def _detect_cname_findings(
     seed_domains: tuple[str, ...],
     id_counter: list[int],
 ) -> list[Finding]:
-    cname_mask = df["application.cname"].notna() & ~df["application.cname"].str.strip().str.lower().isin(
+    cname_lower = df["application.cname"].str.strip().str.lower()
+    cname_mask = df["application.cname"].notna() & ~cname_lower.isin(
         ["no", "", "none", "nan"]
     )
     cname_df = df[cname_mask].copy()
@@ -174,11 +175,14 @@ def _detect_staging_findings(
     for asset, rows in groups.items():
         grades = [str(r["application.risk"]) for r in rows]
         worst = _worst_grade(grades)
-        ports = sorted({int(r["application.port"]) for r in rows if pd.notna(r["application.port"])})
+        ports = sorted({
+            int(r["application.port"]) for r in rows if pd.notna(r["application.port"])
+        })
         ports_str = ", ".join(str(p) for p in ports)
         worst_row = next(r for r in rows if str(r["application.risk"]) == worst)
         status = str(worst_row["application.status"])
-        cname = str(worst_row["application.cname"]) if pd.notna(worst_row["application.cname"]) else ""
+        cname_raw = worst_row["application.cname"]
+        cname = str(cname_raw) if pd.notna(cname_raw) else ""
         tags_set: set[str] = set()
         for r in rows:
             tags_set.update(r["_parsed_tags"])
@@ -222,11 +226,14 @@ def _detect_internal_api_findings(
     for asset, rows in groups.items():
         grades = [str(r["application.risk"]) for r in rows]
         worst = _worst_grade(grades)
-        ports = sorted({int(r["application.port"]) for r in rows if pd.notna(r["application.port"])})
+        ports = sorted({
+            int(r["application.port"]) for r in rows if pd.notna(r["application.port"])
+        })
         ports_str = ", ".join(str(p) for p in ports)
         worst_row = next(r for r in rows if str(r["application.risk"]) == worst)
         status = str(worst_row["application.status"])
-        cname = str(worst_row["application.cname"]) if pd.notna(worst_row["application.cname"]) else ""
+        cname_raw = worst_row["application.cname"]
+        cname = str(cname_raw) if pd.notna(cname_raw) else ""
         tags_set: set[str] = set()
         for r in rows:
             tags_set.update(r["_parsed_tags"])
@@ -370,7 +377,7 @@ def _detect_cert_mismatch_findings(
         cname = str(row["application.cname"]) if pd.notna(row["application.cname"]) else ""
         tags = tuple(row["_parsed_tags"])
         body = (
-            f"{asset} (port {port}, status {status}, grade {grade}) has a hostname/certificate mismatch. "
+            f"{asset} (port {port}, status {status}, grade {grade}) has a hostname/certificate mismatch. "  # noqa: E501
         )
         if cname and cname.lower() not in ("no", "none", "nan", ""):
             body += f"CNAME target: {cname}."

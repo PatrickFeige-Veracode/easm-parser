@@ -11,7 +11,7 @@ from typing import Any
 
 import pandas as pd
 
-from easm_report.exceptions import FileTooLargeError, InvalidFileTypeError, ParseError, PathTraversalError
+from easm_report.exceptions import FileTooLargeError, InvalidFileTypeError, PathTraversalError
 from easm_report.models import ReportData, Supplier
 
 logger = logging.getLogger(__name__)
@@ -56,7 +56,7 @@ def safe_parse_dict(raw: str) -> dict[str, int]:
         return {
             str(k)[:50]: int(v)
             for k, v in result.items()
-            if isinstance(k, str) and isinstance(v, (int, float))
+            if isinstance(k, str) and isinstance(v, int | float)
         }
     except (json.JSONDecodeError, ValueError, TypeError):
         return {}
@@ -152,7 +152,9 @@ def read_easm(
     logger.info("Reading domain file: %s", domain_path.name)
 
     # --- application sheet ---
-    raw = pd.read_excel(easm_path, sheet_name="application", header=None, nrows=5, engine="openpyxl")
+    raw = pd.read_excel(
+        easm_path, sheet_name="application", header=None, nrows=5, engine="openpyxl"
+    )
     scan_date = _extract_scan_date(raw)
 
     df = pd.read_excel(easm_path, sheet_name="application", header=3, engine="openpyxl")
@@ -174,9 +176,8 @@ def read_easm(
         r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$", na=False
     )
     bare_ip_count = int(bare_ip_mask.sum())
-    cname_mask = df["application.cname"].notna() & ~df["application.cname"].str.strip().str.lower().isin(
-        ["no", "", "none", "nan"]
-    )
+    cname_lower = df["application.cname"].str.strip().str.lower()
+    cname_mask = df["application.cname"].notna() & ~cname_lower.isin(["no", "", "none", "nan"])
     total_cnames = int(cname_mask.sum())
     grade_counts: dict[str, int] = {
         str(k): int(v) for k, v in df["application.risk"].value_counts().to_dict().items()
@@ -213,10 +214,6 @@ def read_easm(
     ai_names = _read_classified_names(easm_path, "supplyChainAi")
 
     suppliers = _read_suppliers(easm_path, "supplyChain", pii_names, pci_names, ai_names)
-
-    pii_suppliers = tuple(s for s in suppliers if s.is_pii)
-    pci_suppliers = tuple(s for s in suppliers if s.is_pci)
-    ai_suppliers = tuple(s for s in suppliers if s.is_ai)
 
     # --- supply chain pii/pci/ai (standalone tuples for template) ---
     pii_only = _read_suppliers(easm_path, "supplyChainPii", pii_names, pci_names, ai_names)

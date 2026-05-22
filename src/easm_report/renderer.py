@@ -232,6 +232,8 @@ def _build_teaser_context(
     top_findings = sorted(findings, key=lambda f: sev_order.get(f.fc_class, 3))[:3]
 
     seed_domain_0 = data.seed_domains[0] if data.seed_domains else data.customer.lower()
+    seed_domains_preview = list(data.seed_domains[:5])
+    seed_domains_overflow = max(0, data.seed_count - 5)
 
     hsts_count = (
         data.tag_counts.get("headerMissingHsts", 0)

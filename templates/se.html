@@ -6,7 +6,7 @@
   <!-- Hero -->
   <div class="hero sec-dark dots-d" id="se-hero">
     <div class="hero-orb1"></div>
-    <div class="hero-tag">Technical Analysis · {{ seed_domains | join(' · ') }}</div>
+    <div class="hero-tag">Technical Analysis · {{ seed_domains_preview | join(' · ') }}{% if seed_domains_overflow %} · +{{ seed_domains_overflow }} more{% endif %}</div>
     <h1>Full technical asset inventory<br><span style="color:var(--red)">&amp; exposure detail.</span></h1>
     <p class="hero-sub">Asset-level breakdown: subdomains, dangling CNAMEs, internal APIs, bare IPs, hygiene findings, and supplier vector detail. Scan date: {{ scan_date }}.</p>
     <div class="hero-stats">
@@ -196,7 +196,15 @@
     <div class="eyebrow">Supply chain · Supplier vector detail</div>
     <h2>{{ suppliers | length }} supplier{% if suppliers | length != 1 %}s{% endif %} — connection vectors and proximity.</h2>
     <div class="tbl-wrap">
-      <table>
+      <table style="table-layout:fixed">
+        <colgroup>
+          <col style="width:28%">
+          <col style="width:10%">
+          <col style="width:38%">
+          <col style="width:8%">
+          <col style="width:8%">
+          <col style="width:8%">
+        </colgroup>
         <thead><tr><th>Supplier</th><th>Proximity</th><th>Vectors</th><th>PII</th><th>PCI</th><th>AI</th></tr></thead>
         <tbody>
           {% for s in suppliers %}

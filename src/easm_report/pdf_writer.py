@@ -19,8 +19,8 @@ import re
 import shutil
 import subprocess
 import tempfile
+from collections.abc import Generator
 from pathlib import Path
-from typing import Generator
 
 from easm_report.exceptions import (
     EasmReportError,
@@ -410,7 +410,7 @@ def render_chromium(html_path: Path, output_path: Path) -> None:
     if exe is None:
         raise EasmReportError("Chromium not found")
     # SR-2: list form, no shell=True
-    subprocess.run(
+    subprocess.run(  # noqa: S603
         [
             exe,
             "--headless=new",
@@ -430,7 +430,7 @@ def render_chromium(html_path: Path, output_path: Path) -> None:
 
 def render_wkhtmltopdf(html_path: Path, output_path: Path) -> None:
     # SR-2: list form, no shell=True
-    subprocess.run(
+    subprocess.run(  # noqa: S603 S607
         [
             "wkhtmltopdf",
             "--no-stop-slow-scripts",

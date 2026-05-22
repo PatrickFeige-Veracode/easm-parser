@@ -25,9 +25,8 @@ def _build_context(
     tag_pct = {t: round(100 * c / total, 1) for t, c in data.tag_counts.items()}
     top_tags = sorted(data.tag_counts.items(), key=lambda x: -x[1])[:10]
 
-    investigation_count = int(
-        (df["application.RecommendedSecurityProgram"].str.lower().str.strip() == "investigation").sum()
-    )
+    rsp = df["application.RecommendedSecurityProgram"].str.lower().str.strip()
+    investigation_count = int((rsp == "investigation").sum())
 
     top_suppliers = sorted(data.suppliers, key=lambda s: -s.proximity)[:7]
 
@@ -146,10 +145,10 @@ def _build_context(
 def _build_hook(f: Finding) -> str:
     port_str = f" on port {f.port}" if f.port else ""
     if "clearHttp" in f.tags:
-        return f"{f.asset} serves unencrypted HTTP{port_str} — traffic is transmitted in cleartext."
+        return f"{f.asset} serves unencrypted HTTP{port_str} — traffic is transmitted in cleartext."  # noqa: E501
     if f.status == "online" and "internalApi" in f.tags:
         cname_note = f", routed via {f.cname}" if f.cname else ""
-        return f"{f.asset} is an internalApi-tagged endpoint with status online{port_str}{cname_note}."
+        return f"{f.asset} is an internalApi-tagged endpoint with status online{port_str}{cname_note}."  # noqa: E501
     if f.status == "online" and f.category == "staging":
         env = next(
             (w for w in ("sandbox", "dev", "staging", "uat", "test", "admin", "pilot")
@@ -183,12 +182,12 @@ def _build_researcher_note(f: Finding) -> str:
     if f.status == "online" and f.category == "staging":
         return (
             f"Live and responding on port {f.port} — "
-            f"staging environments routinely carry reduced access controls and data that mirrors production."
+            "staging environments routinely carry reduced access controls and data that mirrors production."  # noqa: E501
         )
     if f.category == "cname" and f.status == "online":
         return (
             f"Live and responding through {f.cname} on port {f.port} — "
-            f"an external host outside the seed domains is in the serving path for this active endpoint."
+            "an external host outside the seed domains is in the serving path for this active endpoint."  # noqa: E501
         )
     if f.category == "cname":
         return (
@@ -197,8 +196,8 @@ def _build_researcher_note(f: Finding) -> str:
         )
     if "hostnameCertificateMismatch" in f.tags:
         return (
-            f"Presents a certificate that does not match its hostname — "
-            f"the mismatch indicates a server identity that cannot be verified at the TLS layer."
+            "Presents a certificate that does not match its hostname — "
+            "the mismatch indicates a server identity that cannot be verified at the TLS layer."
         )
     return (
         f"Score {attacker_score(f)} — highest-priority finding in this dataset."

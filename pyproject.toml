@@ -33,7 +33,13 @@ ignore_missing_imports = true
 
 [tool.ruff]
 line-length = 100
+
+[tool.ruff.lint]
 select = ["E", "F", "I", "UP", "S"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/easm_report/cli.py" = ["E501"]
+"src/easm_report/pdf_writer.py" = ["S603", "S607"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

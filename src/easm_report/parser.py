@@ -176,7 +176,7 @@ def read_easm(
         r"^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$", na=False
     )
     bare_ip_count = int(bare_ip_mask.sum())
-    cname_lower = df["application.cname"].str.strip().str.lower()
+    cname_lower = df["application.cname"].fillna("").astype(str).str.strip().str.lower()
     cname_mask = df["application.cname"].notna() & ~cname_lower.isin(["no", "", "none", "nan"])
     total_cnames = int(cname_mask.sum())
     grade_counts: dict[str, int] = {

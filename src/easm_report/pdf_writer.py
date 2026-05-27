@@ -32,6 +32,12 @@ from easm_report.exceptions import (
 
 logger = logging.getLogger(__name__)
 
+# WeasyPrint emits many harmless warnings for CSS features it doesn't support
+# (clamp(), box-shadow, webkit scrollbars, etc.). Suppress below ERROR level.
+logging.getLogger("weasyprint").setLevel(logging.ERROR)
+logging.getLogger("weasyprint.progress").setLevel(logging.ERROR)
+logging.getLogger("fonttools").setLevel(logging.ERROR)
+
 MAX_INPUT_BYTES = 50 * 1024 * 1024    # 50 MB
 MAX_OUTPUT_BYTES = 100 * 1024 * 1024  # 100 MB
 
@@ -274,6 +280,13 @@ PRINT_PATCH = """
   .grade-fill { height:10px !important; min-width:2px; }
   .grade-bar  { min-height:10px !important; overflow:hidden !important; }
   .grade-row  { page-break-inside:avoid !important; break-inside:avoid !important; }
+  /* Teaser supplier list is full-width — restore readable font size.
+     Scoped to .teaser so narrow 3-col card overrides above are unaffected. */
+  .teaser .pr-lab  { font-size:14px !important; width:220px !important; max-width:220px !important; white-space:nowrap !important; word-break:normal !important; }
+  .teaser .pr-row  { font-size:14px !important; margin-bottom:12px !important; }
+  .teaser .pr-val  { font-size:12px !important; }
+  .teaser .pr-bar  { min-height:8px !important; }
+  .teaser .pr-fill { height:8px !important; }
 
 }
 </style>

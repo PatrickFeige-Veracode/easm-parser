@@ -110,7 +110,7 @@ def _detect_cname_findings(
     seed_domains: tuple[str, ...],
     id_counter: list[int],
 ) -> list[Finding]:
-    cname_lower = df["application.cname"].str.strip().str.lower()
+    cname_lower = df["application.cname"].fillna("").astype(str).str.strip().str.lower()
     cname_mask = df["application.cname"].notna() & ~cname_lower.isin(
         ["no", "", "none", "nan"]
     )

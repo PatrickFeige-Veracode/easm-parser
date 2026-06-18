@@ -20,15 +20,16 @@ FORBIDDEN_PATTERNS: list[tuple[str, str]] = [
     # Only fire when DORA/FCA appear in regulatory framing context, not as supplier/tag names
     (
         r"\bDORA\b\s+(?:regulation|compliance|requirement|mandate|framework|standard|rule|Article)"
-        r"|\b(?:under|per|comply\s+with)\s+(?:the\s+)?\bDORA\b",
+        r"|\b(?:under|per|comply(?:ing|iant)?\s+with)\s+(?:the\s+)?\bDORA\b"
+        r"|\bcompliant\s+with\s+(?:the\s+)?\bDORA\b",
         "Regulatory framing: DORA",
     ),
     (r"\bNIS2\b",                     "Regulatory framing: NIS2"),
     (r"\bGDPR\b",                     "Regulatory framing: GDPR"),
     (r"\bTPRM\b",                     "Regulatory framing: TPRM"),
     (
-        r"\bFCA\b\s+(?:regulation|compliance|requirement|mandate|guidance|framework|standard|rules?|handbook)"  # noqa: E501
-        r"|\b(?:under|per|comply\s+with)\s+(?:the\s+)?\bFCA\b",
+        r"\bFCA\b\s+(?:regulation|compliance|requirement|mandate|guidance|framework|standard|rules?|handbook|guideline)"  # noqa: E501
+        r"|\b(?:under|per|comply(?:ing|iant)?\s+with)\s+(?:the\s+)?\bFCA\b",
         "Regulatory framing: FCA",
     ),
     (r"Likely registered",            "Registration judgement"),

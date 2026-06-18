@@ -282,7 +282,10 @@ PRINT_PATCH = """
   .grade-row  { page-break-inside:avoid !important; break-inside:avoid !important; }
   /* Teaser supplier list is full-width — restore readable font size.
      Scoped to .teaser so narrow 3-col card overrides above are unaffected. */
-  .teaser .pr-lab  { font-size:14px !important; width:220px !important; max-width:220px !important; white-space:nowrap !important; word-break:normal !important; }
+  .teaser .pr-lab  {
+    font-size:14px !important; width:220px !important; max-width:220px !important;
+    white-space:nowrap !important; word-break:normal !important;
+  }
   .teaser .pr-row  { font-size:14px !important; margin-bottom:12px !important; }
   .teaser .pr-val  { font-size:12px !important; }
   .teaser .pr-bar  { min-height:8px !important; }

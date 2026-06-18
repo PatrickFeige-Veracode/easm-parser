@@ -11,14 +11,26 @@ FORBIDDEN_PATTERNS: list[tuple[str, str]] = [
     (r"\bCritical\b",                 "Invented severity: Critical"),
     (r"\bHigh\b(?!\s+proximity)",     "Invented severity: High"),
     # Only fire when Medium is used as a severity/risk label, not as a data-derived grade value
-    (r"\bMedium\b\s+(?:severity|risk|priority|vulnerability|finding)|\b(?:severity|risk|priority)\s+(?:is\s+)?Medium\b", "Invented severity: Medium"),
+    (
+        r"\bMedium\b\s+(?:severity|risk|priority|vulnerability|finding)"
+        r"|\b(?:severity|risk|priority)\s+(?:is\s+)?Medium\b",
+        "Invented severity: Medium",
+    ),
     (r"\bLow\b(?!\s+(profile|risk))", "Invented severity: Low"),
     # Only fire when DORA/FCA appear in regulatory framing context, not as supplier/tag names
-    (r"\bDORA\b\s+(?:regulation|compliance|requirement|mandate|framework|standard|rule|Article)|\b(?:under|per|comply\s+with)\s+(?:the\s+)?\bDORA\b", "Regulatory framing: DORA"),
+    (
+        r"\bDORA\b\s+(?:regulation|compliance|requirement|mandate|framework|standard|rule|Article)"
+        r"|\b(?:under|per|comply\s+with)\s+(?:the\s+)?\bDORA\b",
+        "Regulatory framing: DORA",
+    ),
     (r"\bNIS2\b",                     "Regulatory framing: NIS2"),
     (r"\bGDPR\b",                     "Regulatory framing: GDPR"),
     (r"\bTPRM\b",                     "Regulatory framing: TPRM"),
-    (r"\bFCA\b\s+(?:regulation|compliance|requirement|mandate|guidance|framework|standard|rules?|handbook)|\b(?:under|per|comply\s+with)\s+(?:the\s+)?\bFCA\b", "Regulatory framing: FCA"),
+    (
+        r"\bFCA\b\s+(?:regulation|compliance|requirement|mandate|guidance|framework|standard|rules?|handbook)"  # noqa: E501
+        r"|\b(?:under|per|comply\s+with)\s+(?:the\s+)?\bFCA\b",
+        "Regulatory framing: FCA",
+    ),
     (r"Likely registered",            "Registration judgement"),
     (r"Likely not registered",        "Registration judgement"),
     (r"blast radius",                 "Invented risk narrative"),

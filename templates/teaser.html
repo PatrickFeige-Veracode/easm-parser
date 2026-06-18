@@ -144,7 +144,7 @@ tbody td { padding:10px 14px; vertical-align:top; line-height:1.5; color:var(--n
 .sec-title::after { content:''; flex:1; height:1px; background:var(--g200); margin-left:6px; }
 .sec-title-w { font-size:13.5px; font-weight:700; color:rgba(255,255,255,.4); margin-bottom:14px; display:flex; align-items:center; gap:8px; text-transform:uppercase; letter-spacing:.04em; }
 .sec-title-w::after { content:''; flex:1; height:1px; background:rgba(255,255,255,.07); margin-left:6px; }
-
+.sec-sub { font-size:12px; color:var(--g500); margin-top:-8px; margin-bottom:16px; line-height:1.5; }
 /* ── GRADE BREAKDOWN ── */
 .grade-row { display:flex; align-items:center; gap:12px; margin-bottom:9px; }
 .grade-label { width:32px; flex-shrink:0; }
@@ -303,7 +303,9 @@ tbody td { padding:10px 14px; vertical-align:top; line-height:1.5; color:var(--n
   </div>
 
   <!-- GRADE DISTRIBUTION BAR CHART -->
+  <div style="page-break-inside:avoid">
   <div class="sec-title">Risk grade distribution</div>
+  <div class="sec-sub">Each discovered application receives a cyber hygiene grade (A–F) based on its security posture — from no outstanding findings (A) to failing basic security controls (F).</div>
   {% for grade in ['F', 'D', 'C', 'B', 'A'] %}
   {% if grade_counts.get(grade, 0) > 0 %}
   <div class="grade-row">
@@ -315,6 +317,7 @@ tbody td { padding:10px 14px; vertical-align:top; line-height:1.5; color:var(--n
   </div>
   {% endif %}
   {% endfor %}
+  </div>
 </section>
 
 <!-- TOP FINDINGS -->
